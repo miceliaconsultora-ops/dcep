@@ -1,0 +1,17 @@
+# DCEP Task Plan
+- [ ] B - Blueprint
+    - [x] Answer Discovery Questions
+        - **North Star:** App web/mobile funcional para "Diego Cirpriano Entrenamiento de Padel" (gestión de atletas, evaluación técnica detallada, calendario).
+        - **Integrations:** Supabase (Backend/Auth/DB), Stitch (Design Ideation).
+        - **Source of Truth:** Supabase PostgreSQL Database.
+        - **Delivery Payload:** PWA responsiva (Next.js/Vite + Tailwind).
+        - **Behavioral Rules:** Estilo "Vibrant & Block-based", Alto contraste (Deportivo), Retroalimentación inmediata.
+    - [x] Define JSON Data Schema in `gemini.md` (Updated with "Golpe por golpe")
+- [x] L - Link
+    - [x] Supabase Auth & RLS
+    - [x] Supabase Storage (Avatars)
+- [x] A - Architect
+    - [x] Player Profile (View & Edit modes)
+    - [x] Photo Upload logic
+- [ ] S - Stylize (In Progress)
+- [ ] T - Trigger

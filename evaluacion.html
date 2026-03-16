@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Evaluación Técnica - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bfff00",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .score-active {
+            background-color: #bfff00 !important;
+            color: #050505 !important;
+            box-shadow: 0 0 15px rgba(191, 255, 0, 0.4);
+            border-color: #bfff00 !important;
+        }
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23bfff00' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col font-display pb-10">
+
+    <header class="sticky top-0 z-20 flex items-center bg-background-dark/95 backdrop-blur-md p-4 justify-between border-b border-primary/10">
+        <a href="dashboard.html" class="flex size-10 items-center justify-center text-primary/80">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h2 class="text-lg font-bold tracking-tight uppercase">Evaluación Coach</h2>
+        <div class="size-10"></div>
+    </header>
+
+    <main class="flex-1 px-4 pt-6 space-y-8 max-w-lg mx-auto w-full">
+        <!-- Athlete Selection -->
+        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl">
+            <label class="text-[10px] uppercase font-bold text-primary tracking-widest block mb-2 opacity-60">Atleta a Evaluar</label>
+            <select id="athlete-select" class="custom-select w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-base font-bold text-white outline-none focus:border-primary/50 appearance-none">
+                <option value="">Seleccionar Atleta...</option>
+            </select>
+        </div>
+
+        <!-- GLOBAL SCORES: Juego -->
+        <div class="space-y-4">
+            <h3 class="text-sm font-black text-primary/80 uppercase tracking-widest ml-1">Juego</h3>
+            <div class="grid grid-cols-1 gap-4" id="game-list">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+
+        <!-- STROKE BREAKDOWN -->
+        <div class="space-y-4">
+            <h3 class="text-sm font-black text-primary/80 uppercase tracking-widest ml-1">Golpe por Golpe</h3>
+            <div class="space-y-3" id="strokes-list">
+                <!-- Loaded via JS -->
+            </div>
+        </div>
+
+        <!-- OBSERVATIONS -->
+        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl">
+            <label class="text-[10px] uppercase font-bold text-primary tracking-widest block mb-3 opacity-60">Observaciones Finales</label>
+            <textarea id="observations" rows="4" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:border-primary/50 outline-none transition-all placeholder:text-slate-700" placeholder="Escribe aquí los puntos de mejora..."></textarea>
+        </div>
+
+        <button id="save-btn" class="w-full bg-primary text-black font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs active:scale-95 transition-all">
+            Guardar Evaluación
+        </button>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const games = [
+            { id: 'attack', label: 'Ataque' },
+            { id: 'defense', label: 'Defensa' },
+            { id: 'tactical', label: 'Lectura y Táctica' },
+            { id: 'physical', label: 'Estado Físico' }
+        ];
+
+        const strokes = [
+            { id: 'derecha', label: 'Derecha' }, { id: 'reves', label: 'Revés' },
+            { id: 'sp_derecha', label: 'Salida Pared Der.' }, { id: 'sp_reves', label: 'Salida Pared Rev.' },
+            { id: 'volea_der', label: 'Volea Der.' }, { id: 'volea_rev', label: 'Volea Rev.' },
+            { id: 'bandeja', label: 'Bandeja' }, { id: 'smash', label: 'Smash' }
+        ];
+
+        const data = { technique: {}, game: {} };
+
+        function init() {
+            // Build Game Category
+            const gameList = document.getElementById('game-list');
+            games.forEach(g => {
+                data.game[g.id] = null;
+                const div = document.createElement('div');
+                div.className = "bg-card-dark border border-white/5 rounded-2xl p-4 space-y-3";
+                
+                let buttonsHtml = '';
+                for(let i=1; i<=5; i++){
+                    buttonsHtml += `<button onclick="setGame('${g.id}', ${i})" id="btn-g-${g.id}-${i}" class="flex-1 py-3 rounded-lg bg-black/40 border border-white/5 text-[10px] font-bold text-slate-500 transition-all focus:outline-none">${i}</button>`;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-widest">${g.label}</span>
+                        <span id="val-g-${g.id}" class="text-sm font-black text-primary/40">-</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                        ${buttonsHtml}
+                    </div>
+                `;
+                gameList.appendChild(div);
+            });
+
+            // Build Strokes Category
+            const strokesList = document.getElementById('strokes-list');
+            strokes.forEach(s => {
+                data.technique[s.id] = null;
+                const div = document.createElement('div');
+                div.className = "bg-card-dark border border-white/5 rounded-2xl p-4 space-y-3";
+                
+                let buttonsHtml = '';
+                for(let i=1; i<=5; i++){
+                    buttonsHtml += `<button onclick="setStroke('${s.id}', ${i})" id="btn-s-${s.id}-${i}" class="flex-1 py-3 rounded-lg bg-black/40 border border-white/5 text-[10px] font-bold text-slate-500 transition-all focus:outline-none">${i}</button>`;
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-widest text-slate-300 font-medium">${s.label}</span>
+                        <span id="val-s-${s.id}" class="text-sm font-black text-primary/40">-</span>
+                    </div>
+                    <div class="flex gap-1">
+                        ${buttonsHtml}
+                    </div>
+                `;
+                strokesList.appendChild(div);
+            });
+
+            fetchAthletes();
+        }
+
+        window.setGame = (id, val) => {
+            data.game[id] = val;
+            document.getElementById(`val-g-${id}`).innerText = val;
+            document.getElementById(`val-g-${id}`).classList.replace('text-primary/40', 'text-primary');
+            for(let i=1; i<=5; i++) document.getElementById(`btn-g-${id}-${i}`).classList.remove('score-active');
+            document.getElementById(`btn-g-${id}-${val}`).classList.add('score-active');
+        };
+
+        window.setStroke = (id, val) => {
+            data.technique[id] = val;
+            document.getElementById(`val-s-${id}`).innerText = val;
+            document.getElementById(`val-s-${id}`).classList.replace('text-primary/40', 'text-primary');
+            for(let i=1; i<=5; i++) document.getElementById(`btn-s-${id}-${i}`).classList.remove('score-active');
+            document.getElementById(`btn-s-${id}-${val}`).classList.add('score-active');
+        };
+
+        async function fetchAthletes() {
+            const { data: athletes } = await supabaseClient.from('athletes').select('id, name, last_name').order('name');
+            const select = document.getElementById('athlete-select');
+            athletes.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.innerText = `${a.name} ${a.last_name || ''}`;
+                opt.className = "bg-[#121212]";
+                select.appendChild(opt);
+            });
+        }
+
+        document.getElementById('save-btn').onclick = async () => {
+            const athleteId = document.getElementById('athlete-select').value;
+            if(!athleteId) return alert("Selecciona un atleta");
+
+            const { error } = await supabaseClient.from('evaluations').insert([{
+                athlete_id: athleteId,
+                technique_scores: data.technique,
+                attack_score: data.game['attack'],
+                defense_score: data.game['defense'],
+                tactical_score: data.game['tactical'],
+                physical_score: data.game['physical'],
+                notes: document.getElementById('observations').value
+            }]);
+
+            if(error) alert("Error: " + error.message);
+            else { alert("Evaluación guardada exitosamente!"); location.reload(); }
+        };
+
+        init();
+    </script>
+</body>
+</html>

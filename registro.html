@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Registro - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bfff00",
+                        "background-dark": "#050505",
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .neon-border {
+            border: 1px solid rgba(191, 255, 0, 0.2);
+            box-shadow: 0 0 20px rgba(191, 255, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col items-center justify-center px-6 font-display py-12">
+
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-10">
+            <h1 class="text-5xl font-black text-primary tracking-tighter italic">DCEP</h1>
+            <p class="text-[10px] uppercase tracking-[0.4em] font-bold text-slate-500 mt-2">Nuevo Registro de Atleta</p>
+        </div>
+
+        <div class="bg-white/5 backdrop-blur-xl rounded-3xl p-8 neon-border">
+            <form id="signup-form" class="space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase font-black text-slate-500 ml-1 mb-2 block">Nombre Completo</label>
+                    <input type="text" id="full-name" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 text-white outline-none transition-all" placeholder="Ej: Juan Pérez">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-black text-slate-500 ml-1 mb-2 block">Email</label>
+                    <input type="email" id="email" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 text-white outline-none transition-all" placeholder="atleta@email.com">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase font-black text-slate-500 ml-1 mb-2 block">Contraseña</label>
+                    <input type="password" id="password" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 text-white outline-none transition-all" placeholder="••••••••">
+                </div>
+                
+                <button type="submit" class="w-full bg-primary hover:bg-[#d4ff00] text-black font-black py-4 rounded-xl mt-4 shadow-lg transition-all active:scale-95 uppercase tracking-widest text-xs">
+                    Crear Perfil
+                </button>
+            </form>
+            
+            <p id="msg" class="text-[10px] text-center mt-4 hidden"></p>
+            
+            <div class="mt-6 text-center">
+                <a href="login.html" class="text-slate-500 text-[10px] uppercase font-bold hover:text-primary transition-colors">¿Ya tienes cuenta? Inicia sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.getElementById('signup-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('full-name').value;
+            const msg = document.getElementById('msg');
+
+            // 1. Sign up
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { full_name: fullName }
+                }
+            });
+
+            if (error) {
+                msg.innerText = error.message;
+                msg.className = "text-red-500 text-[10px] text-center mt-4";
+                msg.classList.remove('hidden');
+            } else {
+                msg.innerText = "¡Registro exitoso! Por favor, verifica tu email o inicia sesión.";
+                msg.className = "text-primary text-[10px] text-center mt-4";
+                msg.classList.remove('hidden');
+                
+                // 2. Automáticamente crear registro en tabla athletes vinculado a este nuevo profile ID
+                // Nota: El trigger 'handle_new_user' ya creó el profile.
+                // Insertamos el registro de atleta
+                setTimeout(() => window.location.href = "login.html", 2000);
+            }
+        };
+    </script>
+</body>
+</html>

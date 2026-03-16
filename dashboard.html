@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Dashboard - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bfff00",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col font-display">
+
+    <header class="p-6 pb-2">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-black text-primary tracking-tighter italic">DCEP</h1>
+                <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold">Admin Panel</p>
+            </div>
+            <button id="logout-btn" class="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
+                <span class="material-symbols-outlined text-sm">logout</span>
+            </button>
+        </div>
+        
+        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-[0.2em] mb-1">Bienvenido Coach</p>
+                <h2 class="text-2xl font-bold" id="user-email">Cargando...</h2>
+            </div>
+            <div class="absolute -right-4 -bottom-4 size-24 bg-primary/10 rounded-full blur-3xl"></div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-6 space-y-6">
+        <h3 class="text-sm font-bold uppercase tracking-[0.3em] text-primary/80 ml-1">Módulos de Gestión</h3>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Evaluacion -->
+            <a href="evaluacion.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
+                <div class="size-12 rounded-2xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(191,255,0,0.2)]">
+                    <span class="material-symbols-outlined text-black font-bold text-2xl">assignment</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Evaluación</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-black">Golpe por Golpe</p>
+                </div>
+            </a>
+
+            <!-- Atletas -->
+            <a href="atletas.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
+                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">groups</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Atletas</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-black">Carga y Edición</p>
+                </div>
+            </a>
+
+            <!-- Calendario -->
+            <a href="calendar.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
+                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">calendar_month</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Agenda</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-black">Turnos Atletas</p>
+                </div>
+            </a>
+
+            <!-- Evolución -->
+            <a href="historial.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
+                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">insights</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Evolución</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-black">Estadísticas</p>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = "login.html";
+            } else {
+                document.getElementById('user-email').innerText = session.user.email;
+            }
+        }
+
+        document.getElementById('logout-btn').onclick = async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = "login.html";
+        };
+
+        checkSession();
+    </script>
+</body>
+</html>

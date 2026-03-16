@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Ficha Técnica - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bfff00",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                        "accent-dark": "#1a1a1a"
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .technical-card {
+            background: linear-gradient(145deg, #121212, #0a0a0a);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .neon-text { color: #bfff00; text-shadow: 0 0 10px rgba(191, 255, 0, 0.3); }
+        .stroke-dot { width: 6px; height: 6px; border-radius: 50%; background: #bfff00; }
+        
+        .progreso-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+        .progreso-barra {
+            height: 100%;
+            background: #bfff00;
+            box-shadow: 0 0 10px rgba(191,255,0,0.5);
+            transition: width 1s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen font-display pb-24">
+
+    <!-- Header Section -->
+    <header class="p-6 flex justify-between items-center sticky top-0 z-30 bg-background-dark/80 backdrop-blur-md">
+        <h1 class="text-xl font-black text-primary tracking-tighter italic px-2 py-1 rounded border border-primary/20">DCEP PLAYER</h1>
+        <div class="flex gap-4">
+            <button id="toggle-edit-btn" class="text-slate-500 hover:text-primary transition-colors focus:outline-none">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+            <button id="logout-btn" class="text-slate-500 hover:text-red-500 transition-colors focus:outline-none">
+                <span class="material-symbols-outlined">logout</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="p-6 space-y-8 max-w-lg mx-auto">
+        
+        <!-- VISUAL FICHA: THE PLAYER CARD -->
+        <div id="view-mode" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            
+            <!-- 1. HERO & GENERAL DATA (PRIMERO) -->
+            <div class="technical-card rounded-[2.5rem] p-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-6 opacity-10">
+                    <span class="material-symbols-outlined text-8xl font-black">sports_tennis</span>
+                </div>
+                
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="size-32 rounded-full border-4 border-primary/30 p-1.5 mb-6 shadow-[0_0_30px_rgba(191,255,0,0.1)] relative">
+                        <img id="view-photo" src="" alt="" class="w-full h-full rounded-full object-cover hidden">
+                        <div id="view-photo-placeholder" class="w-full h-full rounded-full bg-accent-dark flex items-center justify-center text-slate-700">
+                            <span class="material-symbols-outlined text-5xl">person</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <h2 id="view-full-name" class="text-4xl font-black italic tracking-tighter text-white">--</h2>
+                        <p id="view-nickname" class="text-primary font-bold tracking-[0.3em] uppercase text-[10px] opacity-80">--</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-8 mt-10 w-full">
+                        <div class="text-left border-l-2 border-primary/20 pl-4">
+                            <p class="text-[9px] uppercase font-black text-slate-500 tracking-widest mb-1">Posición</p>
+                            <p id="view-position" class="text-lg font-bold text-white uppercase italic">--</p>
+                        </div>
+                        <div class="text-left border-l-2 border-primary/20 pl-4">
+                            <p class="text-[9px] uppercase font-black text-slate-500 tracking-widest mb-1">Mano Hábil</p>
+                            <p id="view-hand" class="text-lg font-bold text-white uppercase italic">--</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 mt-8 w-full pt-8 border-t border-white/5">
+                        <div>
+                            <p class="text-[8px] uppercase font-black text-slate-600 mb-1">Edad</p>
+                            <p id="view-age" class="text-xl font-black text-primary italic">--</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] uppercase font-black text-slate-600 mb-1">Altura</p>
+                            <p id="view-height" class="text-xl font-black text-primary italic">--</p>
+                        </div>
+                        <div>
+                            <p class="text-[8px] uppercase font-black text-slate-600 mb-1">Peso</p>
+                            <p id="view-weight" class="text-xl font-black text-primary italic">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="evaluation-section" class="space-y-8 hidden">
+                <div class="flex justify-between items-end px-2">
+                    <h3 class="text-lg font-black italic uppercase tracking-tighter text-white">Última Evaluación</h3>
+                    <p id="eval-date" class="text-[9px] font-bold text-slate-600 uppercase tracking-widest pb-1">--</p>
+                </div>
+
+                <!-- 2. JUEGO (SEGUNDO) -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-2">Juego</h4>
+                    <div class="grid grid-cols-2 gap-3" id="game-scores-display">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- 3. GOLPE POR GOLPE (TERCERO) -->
+                <div class="space-y-4">
+                    <h4 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-2">Golpe por Golpe</h4>
+                    <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl">
+                        <div id="technique-scores-display" class="space-y-5">
+                            <!-- Loaded dynamically -->
+                        </div>
+
+                        <div id="coach-notes" class="mt-8 pt-8 border-t border-white/5 hidden">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="material-symbols-outlined text-primary text-xs">edit_note</span>
+                                <span class="text-[10px] uppercase font-black text-slate-500 tracking-widest">Feedback del Coach</span>
+                            </div>
+                            <p id="view-notes" class="text-sm text-slate-400 italic leading-relaxed pl-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="no-evaluation-msg" class="text-center py-10 opacity-30 italic text-sm">
+                Esperando primera evaluación...
+            </div>
+
+        </div>
+
+        <!-- EDIT MODE (MODAL STYLE) -->
+        <div id="edit-mode" class="hidden fixed inset-0 z-50 bg-black/95 p-6 overflow-y-auto">
+            <div class="max-w-md mx-auto space-y-8 pb-12">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-black italic tracking-tight">AJUSTES PERFIL</h2>
+                    <button id="cancel-btn" class="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 focus:outline-none">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                
+                <div class="flex flex-col items-center gap-4">
+                    <div class="size-24 rounded-full border-2 border-primary/30 relative group overflow-hidden">
+                        <img id="form-photo-preview" src="" alt="" class="w-full h-full rounded-full object-cover hidden">
+                        <label for="photo-upload" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity">
+                            <span class="material-symbols-outlined text-white">upload</span>
+                        </label>
+                        <input type="file" id="photo-upload" class="hidden" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="technical-card rounded-3xl p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="athlete-name" placeholder="Nombre" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner">
+                        <input type="text" id="athlete-lastname" placeholder="Apellido" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner">
+                    </div>
+                    <input type="text" id="athlete-nickname" placeholder="Apodo / Alias" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full uppercase text-xs font-bold tracking-widest shadow-inner">
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="number" id="athlete-age" placeholder="Edad" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner block">
+                        <input type="number" id="athlete-height" placeholder="cm" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner block">
+                        <input type="number" id="athlete-weight" placeholder="kg" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner block">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <select id="athlete-position" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner">
+                            <option value="">Posición</option>
+                            <option value="Drive">Drive</option>
+                            <option value="Revés">Revés</option>
+                            <option value="Ambas">Ambas</option>
+                        </select>
+                        <select id="athlete-hand" class="bg-black/50 border-white/10 rounded-xl px-4 py-3 text-white outline-none w-full shadow-inner">
+                            <option value="">Mano</option>
+                            <option value="Diestro">Diestro</option>
+                            <option value="Zurdo">Zurdo</option>
+                        </select>
+                    </div>
+                    <button id="save-btn" class="w-full bg-primary hover:bg-[#d4ff00] text-black font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs mt-4 active:scale-95 transition-all">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let currentAthlete = null;
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = "login.html"; return; }
+            currentUser = session.user;
+            await loadProfile();
+        }
+
+        async function loadProfile() {
+            const { data: athlete } = await supabaseClient
+                .from('athletes')
+                .select('*')
+                .eq('profile_id', currentUser.id)
+                .maybeSingle();
+
+            if (athlete) {
+                currentAthlete = athlete;
+                document.getElementById('view-full-name').innerText = `${athlete.name} ${athlete.last_name || ''}`;
+                document.getElementById('view-nickname').innerText = athlete.nickname || '--';
+                document.getElementById('view-age').innerText = athlete.age || '--';
+                document.getElementById('view-height').innerText = athlete.height ? athlete.height + ' cm' : '--';
+                document.getElementById('view-weight').innerText = athlete.weight ? athlete.weight + ' kg' : '--';
+                document.getElementById('view-position').innerText = athlete.position || '--';
+                document.getElementById('view-hand').innerText = athlete.dominant_hand || '--';
+                
+                // Form population
+                document.getElementById('athlete-name').value = athlete.name || '';
+                document.getElementById('athlete-lastname').value = athlete.last_name || '';
+                document.getElementById('athlete-nickname').value = athlete.nickname || '';
+                document.getElementById('athlete-age').value = athlete.age || '';
+                document.getElementById('athlete-height').value = athlete.height || '';
+                document.getElementById('athlete-weight').value = athlete.weight || '';
+                document.getElementById('athlete-position').value = athlete.position || '';
+                document.getElementById('athlete-hand').value = athlete.dominant_hand || '';
+
+                if (athlete.profile_photo_url) {
+                    const url = athlete.profile_photo_url + "?t=" + new Date().getTime();
+                    document.getElementById('view-photo').src = url;
+                    document.getElementById('view-photo').classList.remove('hidden');
+                    document.getElementById('view-photo-placeholder').classList.add('hidden');
+                    document.getElementById('form-photo-preview').src = url;
+                    document.getElementById('form-photo-preview').classList.remove('hidden');
+                }
+
+                // Load Final Evaluation (Golpe por Golpe + Game)
+                const { data: evals } = await supabaseClient
+                    .from('evaluations')
+                    .select('*')
+                    .eq('athlete_id', athlete.id)
+                    .order('evaluation_date', { ascending: false })
+                    .limit(1);
+
+                if (evals && evals.length > 0) {
+                    document.getElementById('evaluation-section').classList.remove('hidden');
+                    document.getElementById('no-evaluation-msg').classList.add('hidden');
+                    displayEvaluation(evals[0]);
+                }
+            } else {
+                // If they haven't filled out profile show modal directly? Or keep it blank and wait for them to edit
+            }
+        }
+
+        function displayEvaluation(ev) {
+            document.getElementById('eval-date').innerText = new Date(ev.evaluation_date).toLocaleDateString();
+            
+            // 1. GAME DATA (JUEGO)
+            const gameData = [
+                { icon: 'bolt', label: 'Ataque', score: ev.attack_score },
+                { icon: 'shield', label: 'Defensa', score: ev.defense_score },
+                { icon: 'psychology', label: 'Lectura/Táctica', score: ev.tactical_score },
+                { icon: 'fitness_center', label: 'Estado Físico', score: ev.physical_score }
+            ];
+
+            const gameContainer = document.getElementById('game-scores-display');
+            gameContainer.innerHTML = gameData.map(item => `
+                <div class="bg-card-dark border border-white/5 p-4 rounded-2xl flex justify-between items-center transition-all hover:border-primary/20 hover:shadow-[0_0_15px_rgba(191,255,0,0.05)]">
+                    <div class="flex flex-col gap-1 w-full relative">
+                        <span class="material-symbols-outlined text-primary text-lg opacity-80">${item.icon}</span>
+                        <div class="flex justify-between items-center w-full mt-1">
+                            <span class="text-[9px] uppercase font-black text-slate-400 tracking-widest">${item.label}</span>
+                            <span class="text-xl font-black italic text-white">${item.score || '--'}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // 2. STROKES (GOLPE POR GOLPE)
+            const scores = ev.technique_scores || {};
+            const strokeLabels = {
+                derecha: 'Derecha', reves: 'Revés', sp_derecha: 'Salida Der.', sp_reves: 'Salida Rev.',
+                volea_der: 'Volea Der.', volea_rev: 'Volea Rev.', bandeja: 'Bandeja', smash: 'Smash'
+            };
+
+            const techContainer = document.getElementById('technique-scores-display');
+            techContainer.innerHTML = Object.entries(strokeLabels).map(([id, label]) => `
+                <div class="flex items-center gap-4">
+                    <div class="stroke-dot"></div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-end mb-1.5">
+                            <span class="text-[10px] font-black uppercase text-slate-300 tracking-widest">${label}</span>
+                            <span class="text-sm font-black italic text-primary">${scores[id] || 0}</span>
+                        </div>
+                        <div class="progreso-container">
+                            <div class="progreso-barra" style="width: ${(scores[id] || 0) * 20}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            if (ev.notes) {
+                document.getElementById('coach-notes').classList.remove('hidden');
+                document.getElementById('view-notes').innerText = ev.notes;
+            }
+        }
+
+        document.getElementById('toggle-edit-btn').onclick = () => document.getElementById('edit-mode').classList.remove('hidden');
+        document.getElementById('cancel-btn').onclick = () => document.getElementById('edit-mode').classList.add('hidden');
+
+        document.getElementById('photo-upload').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const path = `${currentUser.id}/avatar.${file.name.split('.').pop()}`;
+            await supabaseClient.storage.from('avatars').upload(path, file, { upsert: true });
+            const { data: { publicUrl } } = supabaseClient.storage.from('avatars').getPublicUrl(path);
+            if (currentAthlete) await supabaseClient.from('athletes').update({ profile_photo_url: publicUrl }).eq('id', currentAthlete.id);
+            location.reload();
+        };
+
+        document.getElementById('save-btn').onclick = async () => {
+            const payload = {
+                name: document.getElementById('athlete-name').value,
+                last_name: document.getElementById('athlete-lastname').value,
+                nickname: document.getElementById('athlete-nickname').value,
+                age: parseInt(document.getElementById('athlete-age').value) || null,
+                height: parseFloat(document.getElementById('athlete-height').value) || null,
+                weight: parseFloat(document.getElementById('athlete-weight').value) || null,
+                position: document.getElementById('athlete-position').value,
+                dominant_hand: document.getElementById('athlete-hand').value,
+                profile_id: currentUser.id
+            };
+            if(!payload.name) return alert("El nombre es requerido");
+            
+            await supabaseClient.from('athletes').upsert(payload, { onConflict: 'profile_id' });
+            location.reload();
+        };
+
+        document.getElementById('logout-btn').onclick = async () => { await supabaseClient.auth.signOut(); window.location.href = "login.html"; };
+
+        init();
+    </script>
+</body>
+</html>
