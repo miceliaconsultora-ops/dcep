@@ -75,10 +75,15 @@
             </a>
 
             <!-- Calendario -->
-            <a href="calendar.html" class="flex flex-col items-center text-slate-500 hover:text-primary transition-colors">
-            <span class="material-symbols-outlined">calendar_month</span>
-            <span class="text-[8px] font-bold uppercase mt-1">Turnos</span>
-        </a>
+            <a href="calendar.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
+                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">calendar_month</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Turnos</p>
+                    <p class="text-[9px] text-slate-500 uppercase font-black">Agenda Atletas</p>
+                </div>
+            </a>
 
             <!-- Evolución -->
             <a href="historial.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
@@ -102,9 +107,22 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
                 window.location.href = "login.html";
-            } else {
-                document.getElementById('user-email').innerText = session.user.email;
+                return;
             }
+            
+            // SECURITY CHECK: Ensure user is admin
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', session.user.id)
+                .single();
+                
+            if (!profile || !profile.is_admin) {
+                window.location.href = "perfil.html"; // Kick players out
+                return;
+            }
+
+            document.getElementById('user-email').innerText = session.user.email;
         }
 
         document.getElementById('logout-btn').onclick = async () => {

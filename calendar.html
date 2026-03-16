@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -53,7 +53,7 @@
         <h1 class="text-xl font-black text-primary tracking-tighter italic uppercase">Calendario</h1>
         <div id="admin-controls-toggle" class="hidden">
             <button id="add-shift-btn" class="text-primary hover:scale-110 transition-transform">
-                <span class="material-symbols-outlined">add_circle</span>
+                <span class="material-symbols-outlined text-3xl">add_circle</span>
             </button>
         </div>
     </header>
@@ -94,17 +94,33 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Max Jugadores</label>
-                        <input type="number" id="new-shift-max" value="4" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Canchas (1 o 2)</label>
+                        <input type="number" id="new-shift-court" value="1" min="1" max="2" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50" onchange="document.getElementById('new-shift-max').value = this.value * 4">
                     </div>
                     <div>
-                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Cancha</label>
-                        <input type="number" id="new-shift-court" value="1" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Cupos Totales</label>
+                        <input type="number" id="new-shift-max" value="4" readonly class="w-full bg-black/30 text-slate-500 border border-white/5 rounded-xl px-4 py-3 outline-none cursor-not-allowed">
                     </div>
                 </div>
                 <div class="pt-4 space-y-3">
                     <button id="save-new-shift" class="w-full bg-primary text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs">Crear Turno</button>
                     <button id="close-modal" class="w-full text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Player Modal -->
+    <div id="add-player-modal" class="fixed inset-0 z-50 bg-black/95 items-center justify-center p-6 hidden">
+        <div class="bg-card-dark rounded-[2.5rem] p-8 w-full max-w-sm border border-white/5 space-y-6">
+            <h2 class="text-xl font-black italic text-primary uppercase">Asignar Jugador</h2>
+            <div class="space-y-4">
+                <select id="athlete-assign-select" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                    <option value="">Seleccionar Atleta...</option>
+                </select>
+                <div class="pt-2 space-y-3">
+                    <button id="save-player-assign" class="w-full bg-primary text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs">Anotar al Turno</button>
+                    <button id="close-player-modal" class="w-full text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -129,7 +145,9 @@
             isAdmin = profile?.is_admin || false;
 
             if (isAdmin) {
+                document.getElementById('admin-controls-toggle').style.display = 'block';
                 document.getElementById('admin-controls-toggle').classList.remove('hidden');
+                fetchAllAthletes();
             } else {
                 // If athlete, change back link to profile
                 document.getElementById('back-link').href = 'perfil.html';
@@ -208,7 +226,7 @@
                     <div class="bg-card-dark rounded-3xl p-6 border border-white/5 flex items-center justify-between shadow-xl relative overflow-hidden">
                         ${userBooked ? '<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>' : ''}
                         <div class="flex flex-col gap-1">
-                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Cancha ${shift.court_number}</p>
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">${shift.court_number === 2 ? '2 CANCHAS (1 & 2)' : '1 CANCHA'}</p>
                             <h3 class="text-xl font-black italic text-white leading-none">${startTime} — ${endTime}</h3>
                             <div class="flex items-center gap-2 mt-2">
                                 <span class="material-symbols-outlined text-sm ${isFull ? 'text-red-500' : 'text-primary'}">groups</span>
@@ -219,9 +237,14 @@
                         </div>
 
                         ${isAdmin ? `
-                            <button onclick="deleteShift('${shift.id}')" class="text-slate-700 hover:text-red-500 transition-colors">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
+                            <div class="flex gap-4">
+                                <button onclick="openAddPlayerModal('${shift.id}')" class="text-slate-500 hover:text-primary transition-colors" title="Agregar Jugador">
+                                    <span class="material-symbols-outlined">person_add</span>
+                                </button>
+                                <button onclick="deleteShift('${shift.id}')" class="text-slate-700 hover:text-red-500 transition-colors" title="Eliminar Turno">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
                         ` : `
                             <button onclick="handleBooking('${shift.id}', ${userBooked})" 
                                 class="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${userBooked ? 'bg-red-500/10 text-red-500 border border-red-500/20' : isFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-primary text-black shadow-lg shadow-primary/20'}"
@@ -273,13 +296,49 @@
                 start_time: start.toISOString(),
                 end_time: end.toISOString(),
                 max_players: parseInt(max),
-                court_number: parseInt(court),
-                created_by: currentUser.id
+                court_number: parseInt(court)
             }]);
 
             if (error) alert(error.message);
             else {
                 document.getElementById('admin-modal').classList.replace('flex', 'hidden');
+                loadShifts();
+            }
+        };
+
+        let allAthletes = [];
+        async function fetchAllAthletes() {
+            const { data: athletes } = await supabaseClient.from('athletes').select('profile_id, name, last_name').order('name');
+            allAthletes = athletes || [];
+            const select = document.getElementById('athlete-assign-select');
+            allAthletes.forEach(a => {
+                if(a.profile_id) {
+                    const opt = document.createElement('option');
+                    opt.value = a.profile_id;
+                    opt.innerText = `${a.name} ${a.last_name || ''}`;
+                    opt.className = "bg-[#121212]";
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        let currentShiftIdToAssign = null;
+        window.openAddPlayerModal = (shiftId) => {
+            currentShiftIdToAssign = shiftId;
+            document.getElementById('add-player-modal').classList.replace('hidden', 'flex');
+        };
+        document.getElementById('close-player-modal').onclick = () => document.getElementById('add-player-modal').classList.replace('flex', 'hidden');
+
+        document.getElementById('save-player-assign').onclick = async () => {
+            const profileId = document.getElementById('athlete-assign-select').value;
+            if(!profileId) return alert("Selecciona un atleta");
+
+            const { error } = await supabaseClient.from('bookings').insert([{ shift_id: currentShiftIdToAssign, profile_id: profileId }]);
+            if (error) {
+                if(error.code === '23505') alert('El jugador ya está en este turno.');
+                else alert(error.message);
+            } else {
+                document.getElementById('add-player-modal').classList.replace('flex', 'hidden');
                 loadShifts();
             }
         };
