@@ -1,208 +1,290 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="es"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Calendario DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
                         "primary": "#bfff00",
-                        "background-light": "#f8f8f5",
-                        "background-dark": "#1e230f",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
                     },
                     fontFamily: {
                         "display": ["Lexend"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    }
                 },
             },
         }
     </script>
-<style>
-        body {
-            font-family: 'Lexend', sans-serif;
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .glass-card {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        .neon-border {
+            border: 1px solid rgba(191, 255, 0, 0.2);
+            box-shadow: 0 0 15px rgba(191, 255, 0, 0.05);
         }
-        .material-symbols-outlined.fill {
-            font-variation-settings: 'FILL' 1;
+        .date-chip.active {
+            background-color: #bfff00;
+            color: #050505;
+            box-shadow: 0 0 20px rgba(191, 255, 0, 0.3);
         }
     </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
-<header class="flex items-center justify-between p-4 border-b border-slate-200 dark:border-primary/10">
-<button class="p-2 hover:bg-slate-200 dark:hover:bg-primary/10 rounded-full transition-colors">
-<span class="material-symbols-outlined">arrow_back</span>
-</button>
-<h1 class="text-lg font-bold">Padel Center</h1>
-<button class="p-2 hover:bg-slate-200 dark:hover:bg-primary/10 rounded-full transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-</header>
-<main class="flex-1 overflow-y-auto pb-24">
-<div class="p-4">
-<div class="bg-white dark:bg-slate-900/40 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-primary/5">
-<div class="flex items-center justify-between mb-4">
-<button class="p-1 text-slate-500 dark:text-slate-400">
-<span class="material-symbols-outlined">chevron_left</span>
-</button>
-<h2 class="text-base font-bold">Octubre 2023</h2>
-<button class="p-1 text-slate-500 dark:text-slate-400">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-<div class="grid grid-cols-7 gap-1 text-center mb-2">
-<span class="text-xs font-semibold text-slate-400 uppercase">D</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">L</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">M</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">X</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">J</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">V</span>
-<span class="text-xs font-semibold text-slate-400 uppercase">S</span>
-</div>
-<div class="grid grid-cols-7 gap-1">
-<div class="h-10 flex items-center justify-center text-slate-300 dark:text-slate-700">27</div>
-<div class="h-10 flex items-center justify-center text-slate-300 dark:text-slate-700">28</div>
-<div class="h-10 flex items-center justify-center text-slate-300 dark:text-slate-700">29</div>
-<div class="h-10 flex items-center justify-center text-slate-300 dark:text-slate-700">30</div>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">1</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">2</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">3</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">4</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative bg-primary dark:text-background-dark rounded-lg font-bold">
-<span class="text-sm">5</span>
-<div class="absolute bottom-1 w-1 h-1 bg-background-dark rounded-full"></div>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">6</span>
-<div class="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">7</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">8</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">9</span>
-<div class="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">10</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">11</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">12</span>
-<div class="absolute bottom-1 w-1 h-1 bg-primary rounded-full"></div>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">13</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">14</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">15</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">16</span>
-</button>
-<button class="h-10 w-full flex flex-col items-center justify-center relative">
-<span class="text-sm">17</span>
-</button>
-</div>
-</div>
-</div>
-<div class="px-4 py-2">
-<button class="w-full bg-primary text-background-dark font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
-<span class="material-symbols-outlined font-bold">add_circle</span>
-                Agendar Nuevo Turno
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen flex flex-col font-display pb-20">
+
+    <!-- Header -->
+    <header class="p-6 pb-2 flex justify-between items-center sticky top-0 z-30 bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+        <a href="dashboard.html" id="back-link" class="text-primary/80 hover:text-primary transition-colors">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <h1 class="text-xl font-black text-primary tracking-tighter italic uppercase">Calendario</h1>
+        <div id="admin-controls-toggle" class="hidden">
+            <button id="add-shift-btn" class="text-primary hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined">add_circle</span>
             </button>
-</div>
-<section class="mt-6">
-<div class="px-4 flex items-center justify-between mb-4">
-<h3 class="text-lg font-bold tracking-tight">PrÃ³ximos Turnos</h3>
-<span class="text-xs text-primary font-medium">Ver todos</span>
-</div>
-<div class="space-y-3 px-4">
-<div class="flex items-center gap-4 bg-white dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-primary/5">
-<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">schedule</span>
-</div>
-<div class="flex-1">
-<p class="font-bold text-sm">Hoy, 17:00 - 18:30</p>
-<p class="text-xs text-slate-500 dark:text-slate-400">Coach: Alberto R.</p>
-</div>
-<button class="p-1 text-slate-400">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-<div class="flex items-center gap-4 bg-white dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-primary/5">
-<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">schedule</span>
-</div>
-<div class="flex-1">
-<p class="font-bold text-sm">MaÃ±ana, 09:00 - 10:30</p>
-<p class="text-xs text-slate-500 dark:text-slate-400">Coach: Sergio M.</p>
-</div>
-<button class="p-1 text-slate-400">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-<div class="flex items-center gap-4 bg-white dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-primary/5">
-<div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-<span class="material-symbols-outlined">schedule</span>
-</div>
-<div class="flex-1">
-<p class="font-bold text-sm">Viernes 12, 18:00 - 19:30</p>
-<p class="text-xs text-slate-500 dark:text-slate-400">Coach: Alberto R.</p>
-</div>
-<button class="p-1 text-slate-400">
-<span class="material-symbols-outlined">chevron_right</span>
-</button>
-</div>
-</div>
-</section>
-</main>
-<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-primary/10 px-4 pb-6 pt-2 flex justify-around items-center">
-<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
-<span class="material-symbols-outlined">home</span>
-<span class="text-[10px] font-medium">Inicio</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-primary" href="#">
-<span class="material-symbols-outlined fill">calendar_today</span>
-<span class="text-[10px] font-medium">Calendario</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
-<span class="material-symbols-outlined">sports_tennis</span>
-<span class="text-[10px] font-medium">Pistas</span>
-</a>
-<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
-<span class="material-symbols-outlined">person</span>
-<span class="text-[10px] font-medium">Perfil</span>
-</a>
-</nav>
-</body></html>
+        </div>
+    </header>
+
+    <main class="p-6 space-y-8">
+        <!-- Week Selector (Simple Horizontal) -->
+        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar" id="week-selector">
+            <!-- Days will be loaded here -->
+        </div>
+
+        <div id="shifts-container" class="space-y-4">
+            <!-- Shifts will be loaded here -->
+            <div class="text-center py-20 opacity-20">
+                <span class="material-symbols-outlined text-6xl mb-4">event_busy</span>
+                <p class="text-sm font-bold uppercase tracking-widest">No hay turnos para este día</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/95 items-center justify-center p-6 hidden">
+        <div class="bg-card-dark rounded-[2.5rem] p-8 w-full max-w-md border border-white/5 space-y-6">
+            <h2 class="text-2xl font-black italic text-primary uppercase">Nuevo Turno</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Fecha</label>
+                    <input type="date" id="new-shift-date" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Inicio</label>
+                        <input type="time" id="new-shift-start" value="16:00" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Fin</label>
+                        <input type="time" id="new-shift-end" value="17:30" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Max Jugadores</label>
+                        <input type="number" id="new-shift-max" value="4" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block tracking-widest ml-1">Cancha</label>
+                        <input type="number" id="new-shift-court" value="1" class="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50">
+                    </div>
+                </div>
+                <div class="pt-4 space-y-3">
+                    <button id="save-new-shift" class="w-full bg-primary text-black font-black py-4 rounded-2xl uppercase tracking-widest text-xs">Crear Turno</button>
+                    <button id="close-modal" class="w-full text-slate-500 font-bold uppercase tracking-widest text-[10px]">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let isAdmin = false;
+        let selectedDate = new Date();
+        selectedDate.setHours(0,0,0,0);
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = "login.html"; return; }
+            currentUser = session.user;
+
+            const { data: profile } = await supabaseClient.from('profiles').select('is_admin').eq('id', currentUser.id).single();
+            isAdmin = profile?.is_admin || false;
+
+            if (isAdmin) {
+                document.getElementById('admin-controls-toggle').classList.remove('hidden');
+            } else {
+                // If athlete, change back link to profile
+                document.getElementById('back-link').href = 'perfil.html';
+            }
+
+            renderWeek();
+            loadShifts();
+        }
+
+        function renderWeek() {
+            const container = document.getElementById('week-selector');
+            container.innerHTML = '';
+            
+            // Get last 2 days and next 5 days
+            const start = new Date();
+            start.setDate(start.getDate() - 1);
+
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(start);
+                day.setDate(start.getDate() + i);
+                day.setHours(0,0,0,0);
+
+                const isActive = day.getTime() === selectedDate.getTime();
+                const dayName = i === 1 ? 'HOY' : day.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
+                
+                const dayEl = document.createElement('button');
+                dayEl.className = `date-chip flex flex-col items-center min-w-[60px] p-4 rounded-2xl transition-all ${isActive ? 'active' : 'bg-card-dark border border-white/5 opacity-40'}`;
+                dayEl.onclick = () => {
+                    selectedDate = day;
+                    renderWeek();
+                    loadShifts();
+                };
+                dayEl.innerHTML = `
+                    <span class="text-[9px] font-black tracking-widest mb-1">${dayName}</span>
+                    <span class="text-lg font-black">${day.getDate()}</span>
+                `;
+                container.appendChild(dayEl);
+            }
+        }
+
+        async function loadShifts() {
+            const container = document.getElementById('shifts-container');
+            
+            const startOfDay = new Date(selectedDate);
+            const endOfDay = new Date(selectedDate);
+            endOfDay.setHours(23,59,59,999);
+
+            const { data: shifts, error } = await supabaseClient
+                .from('shifts')
+                .select('*, bookings(profile_id)')
+                .gte('start_time', startOfDay.toISOString())
+                .lte('start_time', endOfDay.toISOString())
+                .order('start_time');
+
+            if (error) return console.error(error);
+
+            if (!shifts || shifts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-20 opacity-20">
+                        <span class="material-symbols-outlined text-6xl mb-4">event_busy</span>
+                        <p class="text-sm font-bold uppercase tracking-widest">No hay turnos para este día</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = shifts.map(shift => {
+                const bookedCount = shift.bookings?.length || 0;
+                const isFull = bookedCount >= shift.max_players;
+                const userBooked = shift.bookings?.some(b => b.profile_id === currentUser.id);
+                
+                const startTime = new Date(shift.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const endTime = new Date(shift.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                return `
+                    <div class="bg-card-dark rounded-3xl p-6 border border-white/5 flex items-center justify-between shadow-xl relative overflow-hidden">
+                        ${userBooked ? '<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>' : ''}
+                        <div class="flex flex-col gap-1">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Cancha ${shift.court_number}</p>
+                            <h3 class="text-xl font-black italic text-white leading-none">${startTime} — ${endTime}</h3>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="material-symbols-outlined text-sm ${isFull ? 'text-red-500' : 'text-primary'}">groups</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest ${isFull ? 'text-red-500' : 'text-slate-400'}">
+                                    ${bookedCount} / ${shift.max_players} JUGADORES
+                                </span>
+                            </div>
+                        </div>
+
+                        ${isAdmin ? `
+                            <button onclick="deleteShift('${shift.id}')" class="text-slate-700 hover:text-red-500 transition-colors">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        ` : `
+                            <button onclick="handleBooking('${shift.id}', ${userBooked})" 
+                                class="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${userBooked ? 'bg-red-500/10 text-red-500 border border-red-500/20' : isFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-primary text-black shadow-lg shadow-primary/20'}"
+                                ${isFull && !userBooked ? 'disabled' : ''}>
+                                ${userBooked ? 'Bajarme' : isFull ? 'Completo' : 'Anotarme'}
+                            </button>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.handleBooking = async (shiftId, userBooked) => {
+            if (userBooked) {
+                const { error } = await supabaseClient.from('bookings').delete().match({ shift_id: shiftId, profile_id: currentUser.id });
+                if (error) alert(error.message);
+            } else {
+                const { error } = await supabaseClient.from('bookings').insert([{ shift_id: shiftId, profile_id: currentUser.id }]);
+                if (error) alert(error.message);
+            }
+            loadShifts();
+        };
+
+        window.deleteShift = async (id) => {
+            if(!confirm('¿Borrar este turno?')) return;
+            const { error } = await supabaseClient.from('shifts').delete().eq('id', id);
+            if (error) alert(error.message);
+            loadShifts();
+        };
+
+        // Modal Logic
+        document.getElementById('add-shift-btn').onclick = () => {
+            document.getElementById('new-shift-date').value = selectedDate.toISOString().split('T')[0];
+            document.getElementById('admin-modal').classList.replace('hidden', 'flex');
+        };
+        document.getElementById('close-modal').onclick = () => document.getElementById('admin-modal').classList.replace('flex', 'hidden');
+
+        document.getElementById('save-new-shift').onclick = async () => {
+            const dateStr = document.getElementById('new-shift-date').value;
+            const startStr = document.getElementById('new-shift-start').value;
+            const endStr = document.getElementById('new-shift-end').value;
+            const max = document.getElementById('new-shift-max').value;
+            const court = document.getElementById('new-shift-court').value;
+
+            const start = new Date(`${dateStr}T${startStr}:00`);
+            const end = new Date(`${dateStr}T${endStr}:00`);
+
+            const { error } = await supabaseClient.from('shifts').insert([{
+                start_time: start.toISOString(),
+                end_time: end.toISOString(),
+                max_players: parseInt(max),
+                court_number: parseInt(court),
+                created_by: currentUser.id
+            }]);
+
+            if (error) alert(error.message);
+            else {
+                document.getElementById('admin-modal').classList.replace('flex', 'hidden');
+                loadShifts();
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>
