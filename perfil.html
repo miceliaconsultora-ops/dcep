@@ -350,16 +350,60 @@
         document.getElementById('photo-upload').onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            const path = `${currentUser.id}/avatar.${file.name.split('.').pop()}`;
-            await supabaseClient.storage.from('avatars').upload(path, file, { upsert: true });
+            
+            // Show a loading state if needed
+            const preview = document.getElementById('form-photo-preview');
+            preview.style.opacity = '0.5';
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
+            const path = `avatars/${fileName}`;
+
+            const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(path, file, { upsert: true });
+            
+            if (uploadError) {
+                console.error(uploadError);
+                alert("Error al subir la imagen. Verifica el tamaño y formato.");
+                preview.style.opacity = '1';
+                return;
+            }
+
             const { data: { publicUrl } } = supabaseClient.storage.from('avatars').getPublicUrl(path);
-            if (currentAthlete) await supabaseClient.from('athletes').update({ profile_photo_url: publicUrl }).eq('id', currentAthlete.id);
-            location.reload();
+            
+            // Update table
+            if (currentAthlete) {
+                await supabaseClient.from('athletes').update({ profile_photo_url: publicUrl }).eq('id', currentAthlete.id);
+                currentAthlete.profile_photo_url = publicUrl;
+            } else {
+                // Create minimal athlete record to hold the photo URL
+                const { data: newAthlete, error: upsertError } = await supabaseClient.from('athletes').upsert({ 
+                    profile_id: currentUser.id, 
+                    profile_photo_url: publicUrl,
+                    name: document.getElementById('athlete-name').value || 'Atleta'
+                }, { onConflict: 'profile_id' }).select().single();
+                
+                if (upsertError) console.error(upsertError);
+                else currentAthlete = newAthlete;
+            }
+
+            // Update UI without reload
+            const url = publicUrl + "?t=" + new Date().getTime();
+            document.getElementById('view-photo').src = url;
+            document.getElementById('view-photo').classList.remove('hidden');
+            document.getElementById('view-photo-placeholder').classList.add('hidden');
+            
+            preview.src = url;
+            preview.classList.remove('hidden');
+            preview.style.opacity = '1';
         };
 
         document.getElementById('save-btn').onclick = async () => {
+            const name = document.getElementById('athlete-name').value;
+            if(!name) return alert("El nombre es requerido");
+
             const payload = {
-                name: document.getElementById('athlete-name').value,
+                profile_id: currentUser.id,
+                name: name,
                 last_name: document.getElementById('athlete-lastname').value,
                 nickname: document.getElementById('athlete-nickname').value,
                 age: parseInt(document.getElementById('athlete-age').value) || null,
@@ -367,12 +411,16 @@
                 weight: parseFloat(document.getElementById('athlete-weight').value) || null,
                 position: document.getElementById('athlete-position').value,
                 dominant_hand: document.getElementById('athlete-hand').value,
-                profile_id: currentUser.id
+                profile_photo_url: currentAthlete ? currentAthlete.profile_photo_url : null
             };
-            if(!payload.name) return alert("El nombre es requerido");
             
-            await supabaseClient.from('athletes').upsert(payload, { onConflict: 'profile_id' });
-            location.reload();
+            const { error } = await supabaseClient.from('athletes').upsert(payload, { onConflict: 'profile_id' });
+            
+            if (error) {
+                alert("Error al guardar: " + error.message);
+            } else {
+                location.reload(); // Now we reload because everything is done
+            }
         };
 
         document.getElementById('logout-btn').onclick = async () => { await supabaseClient.auth.signOut(); window.location.href = "login.html"; };
