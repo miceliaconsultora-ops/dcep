@@ -1,198 +1,427 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Padel Evolution History</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Historial de Evolución - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
                         "primary": "#bfff00",
-                        "background-light": "#f8f8f5",
-                        "background-dark": "#1e230f",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                        "accent-dark": "#1a1a1a"
                     },
                     fontFamily: {
                         "display": ["Lexend"]
-                    },
-                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    }
                 },
             },
         }
     </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
-<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
-<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-<!-- Header -->
-<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-200 dark:border-primary/10">
-<div class="flex size-12 shrink-0 items-center justify-start cursor-pointer">
-<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
-</div>
-<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Evolution History</h2>
-<div class="flex size-12 shrink-0 items-center justify-end">
-<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-transparent text-slate-900 dark:text-white">
-<span class="material-symbols-outlined">share</span>
-</button>
-</div>
-</header>
-<!-- Filters Section -->
-<div class="flex gap-3 p-4 overflow-x-auto no-scrollbar scroll-smooth">
-<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary px-4">
-<p class="text-background-dark text-sm font-bold">All Strokes</p>
-<span class="material-symbols-outlined text-background-dark text-[20px]">keyboard_arrow_down</span>
-</button>
-<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 border border-slate-300 dark:border-primary/20 px-4">
-<p class="text-slate-700 dark:text-primary text-sm font-medium">Bandeja</p>
-</button>
-<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 border border-slate-300 dark:border-primary/20 px-4">
-<p class="text-slate-700 dark:text-primary text-sm font-medium">Vibora</p>
-</button>
-<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 border border-slate-300 dark:border-primary/20 px-4">
-<p class="text-slate-700 dark:text-primary text-sm font-medium">Smash</p>
-</button>
-</div>
-<!-- Main Stats Card -->
-<div class="px-4 py-2">
-<div class="bg-slate-100 dark:bg-primary/5 rounded-xl p-6 border border-slate-200 dark:border-primary/10">
-<div class="flex justify-between items-start mb-4">
-<div class="flex flex-col gap-1">
-<p class="text-slate-500 dark:text-primary/60 text-sm font-medium">Global Performance Score</p>
-<h3 class="text-slate-900 dark:text-white text-4xl font-bold">82%</h3>
-</div>
-<div class="flex items-center gap-1 bg-green-500/10 dark:bg-primary/20 px-2 py-1 rounded-lg">
-<span class="material-symbols-outlined text-green-600 dark:text-primary text-sm">trending_up</span>
-<span class="text-green-600 dark:text-primary text-xs font-bold">+12.4%</span>
-</div>
-</div>
-<!-- Simple Performance Graph Placeholder -->
-<div class="flex min-h-[160px] flex-col gap-4 py-2">
-<svg fill="none" height="120" preserveaspectratio="none" viewbox="0 0 400 120" width="100%" xmlns="http://www.w3.org/2000/svg">
-<path d="M0 100C40 90 60 40 100 50C140 60 160 80 200 65C240 50 260 20 300 25C340 30 360 80 400 45V120H0V100Z" fill="url(#gradient-bg)"></path>
-<path d="M0 100C40 90 60 40 100 50C140 60 160 80 200 65C240 50 260 20 300 25C340 30 360 80 400 45" stroke="#bfff00" stroke-linecap="round" stroke-width="3"></path>
-<defs>
-<lineargradient gradientunits="userSpaceOnUse" id="gradient-bg" x1="200" x2="200" y1="0" y2="120">
-<stop stop-color="#bfff00" stop-opacity="0.3"></stop>
-<stop offset="1" stop-color="#bfff00" stop-opacity="0"></stop>
-</lineargradient>
-</defs>
-</svg>
-<div class="flex justify-between px-2">
-<p class="text-slate-400 dark:text-primary/40 text-[10px] font-bold uppercase tracking-widest">Jan</p>
-<p class="text-slate-400 dark:text-primary/40 text-[10px] font-bold uppercase tracking-widest">Mar</p>
-<p class="text-slate-400 dark:text-primary/40 text-[10px] font-bold uppercase tracking-widest">May</p>
-<p class="text-slate-400 dark:text-primary/40 text-[10px] font-bold uppercase tracking-widest">Jul</p>
-<p class="text-slate-400 dark:text-primary/40 text-[10px] font-bold uppercase tracking-widest">Sep</p>
-</div>
-</div>
-</div>
-</div>
-<!-- Session List Section -->
-<div class="flex items-center justify-between px-4 pb-2 pt-6">
-<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight">Session History</h3>
-<span class="text-primary text-xs font-bold uppercase cursor-pointer">View All</span>
-</div>
-<div class="flex flex-col gap-3 px-4 pb-24">
-<!-- Progress Card 1 -->
-<div class="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
-<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-<span class="material-symbols-outlined text-primary">sports_tennis</span>
-</div>
-<div class="flex-1">
-<div class="flex justify-between items-start">
-<h4 class="text-slate-900 dark:text-white font-bold text-sm">Bandeja Precision</h4>
-<span class="text-primary font-bold text-sm">78%</span>
-</div>
-<p class="text-slate-500 dark:text-primary/60 text-xs">Aug 24, 2023 â¢ Advanced Training</p>
-</div>
-<div class="text-green-500 text-xs font-bold">+5%</div>
-</div>
-<!-- Progress Card 2 -->
-<div class="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
-<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-<span class="material-symbols-outlined text-primary">rocket_launch</span>
-</div>
-<div class="flex-1">
-<div class="flex justify-between items-start">
-<h4 class="text-slate-900 dark:text-white font-bold text-sm">Smash Power</h4>
-<span class="text-primary font-bold text-sm">91%</span>
-</div>
-<p class="text-slate-500 dark:text-primary/60 text-xs">Aug 18, 2023 â¢ Competitive Match</p>
-</div>
-<div class="text-green-500 text-xs font-bold">+2%</div>
-</div>
-<!-- Progress Card 3 -->
-<div class="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
-<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-<span class="material-symbols-outlined text-primary">shield</span>
-</div>
-<div class="flex-1">
-<div class="flex justify-between items-start">
-<h4 class="text-slate-900 dark:text-white font-bold text-sm">Defensive Positioning</h4>
-<span class="text-primary font-bold text-sm">64%</span>
-</div>
-<p class="text-slate-500 dark:text-primary/60 text-xs">Aug 12, 2023 â¢ Strategy Session</p>
-</div>
-<div class="text-red-400 text-xs font-bold">-3%</div>
-</div>
-<!-- Progress Card 4 -->
-<div class="flex items-center gap-4 bg-slate-100 dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
-<div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-<span class="material-symbols-outlined text-primary">bolt</span>
-</div>
-<div class="flex-1">
-<div class="flex justify-between items-start">
-<h4 class="text-slate-900 dark:text-white font-bold text-sm">Serve Consistency</h4>
-<span class="text-primary font-bold text-sm">85%</span>
-</div>
-<p class="text-slate-500 dark:text-primary/60 text-xs">Aug 05, 2023 â¢ Warm-up Drill</p>
-</div>
-<div class="text-green-500 text-xs font-bold">+8%</div>
-</div>
-</div>
-<!-- Bottom Navigation Bar -->
-<div class="fixed bottom-0 left-0 right-0 flex border-t border-slate-200 dark:border-primary/10 bg-background-light dark:bg-background-dark px-4 pb-6 pt-2 z-20">
-<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-primary/40" href="#">
-<span class="material-symbols-outlined">home</span>
-<p class="text-[10px] font-bold uppercase tracking-wider">Home</p>
-</a>
-<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-900 dark:text-primary" href="#">
-<span class="material-symbols-outlined fill-1">history</span>
-<p class="text-[10px] font-bold uppercase tracking-wider">History</p>
-</a>
-<div class="flex flex-1 flex-col items-center justify-end pb-2">
-<div class="flex size-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/20 -translate-y-4">
-<span class="material-symbols-outlined text-background-dark text-3xl font-bold">add</span>
-</div>
-</div>
-<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-primary/40" href="#">
-<span class="material-symbols-outlined">sports_handball</span>
-<p class="text-[10px] font-bold uppercase tracking-wider">Play</p>
-</a>
-<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-primary/40" href="#">
-<span class="material-symbols-outlined">person</span>
-<p class="text-[10px] font-bold uppercase tracking-wider">Profile</p>
-</a>
-</div>
-</div>
-<style>
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .technical-card {
+            background: linear-gradient(145deg, #121212, #0a0a0a);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+        /* Hide scrollbars but allow scroll */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23bfff00' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
-        .fill-1 { font-variation-settings: 'FILL' 1; }
     </style>
-</body></html>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen font-display pb-24">
+
+    <!-- Header Section -->
+    <header class="p-4 flex items-center justify-between sticky top-0 z-30 bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+        <button onclick="history.back()" class="flex size-10 items-center justify-center text-primary/80 hover:bg-white/5 rounded-full transition-colors active:scale-95">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <div class="flex flex-col items-center">
+            <h1 class="text-lg font-black tracking-tighter text-white">EVOLUCIÓN</h1>
+            <p id="athlete-name-display" class="text-[10px] text-primary font-bold uppercase tracking-widest">--</p>
+        </div>
+        <div class="size-10"></div>
+    </header>
+
+    <main class="p-4 space-y-10 max-w-7xl mx-auto w-full pt-8">
+        
+        <!-- Top Section: Global Status & Trends -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            
+            <!-- Current Status: Radar Chart -->
+            <div class="space-y-4 animate-in fade-in slide-in-from-left duration-700">
+                <div class="flex items-center gap-3 ml-2">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest">Estado Actual (Juego)</h2>
+                </div>
+                <div class="technical-card rounded-[2.5rem] p-8 flex justify-center items-center relative min-h-[400px] group transition-all hover:border-primary/20 hover:shadow-[0_20px_50px_rgba(191,255,0,0.05)]">
+                    <div id="radar-loading" class="absolute inset-0 flex justify-center items-center text-primary/50 text-xs tracking-widest uppercase font-bold animate-pulse">
+                        Cargando...
+                    </div>
+                    <!-- Glow decoration -->
+                    <div class="absolute inset-0 bg-primary/5 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                    <canvas id="radarChart" class="w-full max-w-[350px] max-h-[350px] opacity-0 transition-opacity duration-700 relative z-10"></canvas>
+                </div>
+            </div>
+
+            <!-- Evolución: Juego Line Chart -->
+            <div class="space-y-4 animate-in fade-in slide-in-from-right duration-700">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-2">Evolución Global (A-D-T-F)</h2>
+                <div class="technical-card rounded-[2.5rem] p-8 relative min-h-[400px] flex flex-col justify-center">
+                    <canvas id="gameLineChart" class="w-full"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Technical Detail & Records -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            
+            <!-- Evolución: Golpe Line Chart -->
+            <div class="lg:col-span-2 space-y-4 animate-in fade-in slide-in-from-bottom duration-700">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ml-2 mb-2">
+                    <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest whitespace-nowrap">Evolución Técnica por Golpe</h2>
+                    <select id="stroke-selector" class="custom-select w-full sm:w-64 bg-accent-dark border border-white/10 rounded-2xl py-3 px-5 text-xs font-bold text-white outline-none focus:border-primary/50 shadow-xl transition-all">
+                        <option value="derecha">Derecha</option>
+                        <option value="reves">Revés</option>
+                        <option value="volea_der">Volea Der.</option>
+                        <option value="volea_rev">Volea Rev.</option>
+                        <option value="sp_derecha">Salida Pared Der.</option>
+                        <option value="sp_reves">Salida Pared Rev.</option>
+                        <option value="bandeja">Bandeja</option>
+                        <option value="smash">Smash</option>
+                    </select>
+                </div>
+                
+                <div class="technical-card rounded-[2.5rem] p-8 relative min-h-[350px] flex flex-col justify-center">
+                    <canvas id="strokeLineChart" class="w-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Historial de Sesiones (List) -->
+            <div class="space-y-4 animate-in fade-in slide-in-from-right duration-700">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-1">Bitácora de Sesiones</h2>
+                <div id="sessions-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+                    <div class="text-center text-slate-500 text-xs italic py-10 uppercase tracking-widest opacity-50">Cargando bitácora...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        let evaluationsData = [];
+        let radarChartInstance = null;
+        let gameLineChartInstance = null;
+        let strokeLineChartInstance = null;
+
+        // Chart.js Default Configs for Premium Dark UI
+        Chart.defaults.color = '#71717a'; // slate-500
+        Chart.defaults.font.family = "'Lexend', sans-serif";
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
+        Chart.defaults.scale.grid.borderColor = 'rgba(255, 255, 255, 0)';
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = "login.html"; return; }
+            currentUser = session.user;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const athleteIdParam = urlParams.get('id');
+
+            let athleteIdToFetch = athleteIdParam;
+
+            if (!athleteIdToFetch) {
+                // Fetch athlete_id from profile
+                const { data: athleteProfile } = await supabaseClient
+                    .from('athletes')
+                    .select('id, name, last_name')
+                    .eq('profile_id', currentUser.id)
+                    .maybeSingle();
+                
+                if (athleteProfile) {
+                    athleteIdToFetch = athleteProfile.id;
+                    document.getElementById('athlete-name-display').innerText = `${athleteProfile.name} ${athleteProfile.last_name || ''}`;
+                } else {
+                    document.getElementById('sessions-list').innerHTML = `<p class="text-center text-slate-500 text-xs italic py-6">Perfil incompleto o atleta no encontrado.</p>`;
+                    return;
+                }
+            } else {
+                // Fetch name by given ID
+                const { data: athleteProfile } = await supabaseClient
+                    .from('athletes')
+                    .select('name, last_name')
+                    .eq('id', athleteIdToFetch)
+                    .maybeSingle();
+                if(athleteProfile) {
+                    document.getElementById('athlete-name-display').innerText = `${athleteProfile.name} ${athleteProfile.last_name || ''}`;
+                }
+            }
+
+            await loadEvaluations(athleteIdToFetch);
+        }
+
+        async function loadEvaluations(athleteId) {
+            const { data: evals, error } = await supabaseClient
+                .from('evaluations')
+                .select('*')
+                .eq('athlete_id', athleteId)
+                .order('evaluation_date', { ascending: true }); // Ascending for line charts (oldest to newest)
+
+            if (error) {
+                console.error("Error fetching evaluations", error);
+                document.getElementById('sessions-list').innerHTML = `<p class="text-center text-red-500 text-xs">Error cargando datos.</p>`;
+                return;
+            }
+
+            evaluationsData = evals || [];
+
+            if (evaluationsData.length === 0) {
+                document.getElementById('radar-loading').innerText = "Sin datos";
+                document.getElementById('sessions-list').innerHTML = `<p class="text-center text-slate-500 text-xs italic py-6">No hay evaluaciones registradas todavía.</p>`;
+                return;
+            }
+
+            renderRadarChart();
+            renderGameLineChart();
+            renderStrokeLineChart();
+            renderSessionsList();
+            
+            document.getElementById('radar-loading').classList.add('hidden');
+            document.getElementById('radarChart').classList.remove('opacity-0');
+            
+            // Listen to stroke dropdown change
+            document.getElementById('stroke-selector').addEventListener('change', () => {
+                renderStrokeLineChart();
+            });
+        }
+
+        function renderRadarChart() {
+            // Get the latest evaluation
+            const latestEval = evaluationsData[evaluationsData.length - 1];
+            
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if(radarChartInstance) radarChartInstance.destroy();
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Ataque', 'Defensa', 'Táctica', 'Físico'],
+                    datasets: [{
+                        label: 'Evaluación Más Reciente',
+                        data: [
+                            latestEval.attack_score || 0,
+                            latestEval.defense_score || 0,
+                            latestEval.tactical_score || 0,
+                            latestEval.physical_score || 0
+                        ],
+                        backgroundColor: 'rgba(191, 255, 0, 0.2)',
+                        borderColor: '#bfff00',
+                        pointBackgroundColor: '#050505',
+                        pointBorderColor: '#bfff00',
+                        pointHoverBackgroundColor: '#bfff00',
+                        pointHoverBorderColor: '#fff',
+                        borderWidth: 2,
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: {
+                                font: { size: 10, family: "'Lexend', sans-serif", weight: 'bold' },
+                                color: '#a1a1aa' // slate-400
+                            },
+                            ticks: { min: 0, max: 5, stepSize: 1, display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderGameLineChart() {
+            const ctx = document.getElementById('gameLineChart').getContext('2d');
+            const dates = evaluationsData.map(e => {
+                const d = new Date(e.evaluation_date || e.created_at);
+                return `${d.getDate()}/${d.getMonth()+1}`;
+            });
+
+            if(gameLineChartInstance) gameLineChartInstance.destroy();
+
+            gameLineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Ataque',
+                            data: evaluationsData.map(e => e.attack_score || 0),
+                            borderColor: '#ef4444', // red-500
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Defensa',
+                            data: evaluationsData.map(e => e.defense_score || 0),
+                            borderColor: '#3b82f6', // blue-500
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Táctica',
+                            data: evaluationsData.map(e => e.tactical_score || 0),
+                            borderColor: '#a855f7', // purple-500
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Físico',
+                            data: evaluationsData.map(e => e.physical_score || 0),
+                            borderColor: '#eab308', // yellow-500
+                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 5, ticks: { stepSize: 1, color: '#52525b' } },
+                        x: { ticks: { color: '#52525b', font: { size: 10 } } }
+                    },
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 8, font: { size: 10 }, color: '#a1a1aa' } }
+                    }
+                }
+            });
+        }
+
+        function renderStrokeLineChart() {
+            const selectedStroke = document.getElementById('stroke-selector').value;
+            const ctx = document.getElementById('strokeLineChart').getContext('2d');
+            
+            const dates = evaluationsData.map(e => {
+                const d = new Date(e.evaluation_date || e.created_at);
+                return `${d.getDate()}/${d.getMonth()+1}`;
+            });
+
+            const strokeData = evaluationsData.map(e => {
+                return (e.technique_scores && e.technique_scores[selectedStroke]) ? e.technique_scores[selectedStroke] : 0;
+            });
+
+            if(strokeLineChartInstance) strokeLineChartInstance.destroy();
+
+            // Create gradient for stroke line
+            const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+            gradient.addColorStop(0, 'rgba(191, 255, 0, 0.5)'); // primary
+            gradient.addColorStop(1, 'rgba(191, 255, 0, 0.0)');
+
+            strokeLineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Nivel del Golpe',
+                        data: strokeData,
+                        borderColor: '#bfff00',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        tension: 0.4, // curves
+                        fill: true,
+                        pointBackgroundColor: '#050505',
+                        pointBorderColor: '#bfff00',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0, max: 5, ticks: { stepSize: 1, color: '#52525b' } },
+                        x: { ticks: { color: '#52525b', font: { size: 10 } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderSessionsList() {
+            const container = document.getElementById('sessions-list');
+            
+            // Reverse to show newest first in the list
+            const reversedEvals = [...evaluationsData].reverse();
+
+            container.innerHTML = reversedEvals.map((e, index) => {
+                const d = new Date(e.evaluation_date || e.created_at);
+                const dateStr = d.toLocaleDateString();
+                
+                // Calculate average of the 4 game areas 
+                const avg = ((e.attack_score + e.defense_score + e.tactical_score + e.physical_score) / 4).toFixed(1);
+
+                return `
+                <div class="technical-card p-4 rounded-2xl flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary text-sm font-bold">query_stats</span>
+                            </div>
+                            <span class="text-xs font-bold text-white tracking-widest uppercase">${dateStr}</span>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-[9px] uppercase font-bold text-slate-500 tracking-widest relative top-1">Promedio</span>
+                            <span class="text-lg font-black italic text-primary">${isNaN(avg) ? '--' : avg}</span>
+                        </div>
+                    </div>
+                    ${e.notes ? `<div class="mt-2 pl-10 border-t border-white/5 pt-2"><p class="text-xs text-slate-500 italic max-h-12 overflow-hidden overflow-ellipsis break-words">${e.notes}</p></div>` : ''}
+                </div>
+                `;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

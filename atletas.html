@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -39,40 +39,63 @@
         <div class="size-10"></div>
     </header>
 
-    <main class="flex-1 overflow-y-auto pb-24 px-4 pt-6">
-        <!-- Add Athlete Form -->
-        <div id="admin-panel" class="hidden">
-            <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4 ml-1">Registrar Nuevo Atleta</h3>
-            <div class="bg-card-dark rounded-2xl p-6 border border-white/5 space-y-4 shadow-xl mb-10">
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-slate-500 mb-2 block ml-1">Nombre Completo</label>
-                    <input type="text" id="athlete-name" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 text-white outline-none transition-all">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            
+            <!-- Left Column: Add Athlete Form -->
+            <div id="admin-panel" class="hidden lg:sticky lg:top-24 animate-in fade-in slide-in-from-left duration-700">
+                <div class="flex items-center gap-3 mb-6 ml-1">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-primary/80">Nuevo Registro</h3>
                 </div>
-                <div>
-                    <label class="text-[10px] uppercase font-bold text-slate-500 mb-2 block ml-1">Categoría</label>
-                    <select id="athlete-category" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 text-white outline-none transition-all">
-                        <option value="Principiante">Principiante</option>
-                        <option value="Intermedio">Intermedio</option>
-                        <option value="Avanzado">Avanzado</option>
-                        <option value="Pro">Pro</option>
-                    </select>
+                
+                <div class="bg-card-dark rounded-[2.5rem] p-8 border border-white/5 space-y-6 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute -right-10 -bottom-10 size-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700"></div>
+                    
+                    <div class="relative z-10 space-y-6">
+                        <div>
+                            <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block ml-1 tracking-widest">Nombre Completo</label>
+                            <input type="text" id="athlete-name" placeholder="Ej: Juan Pérez" class="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 focus:border-primary/50 text-white outline-none transition-all placeholder:text-slate-700 shadow-inner">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-black text-slate-500 mb-2 block ml-1 tracking-widest">Categoría Inicial</label>
+                            <select id="athlete-category" class="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 focus:border-primary/50 text-white outline-none transition-all shadow-inner">
+                                <option value="Principiante">Principiante</option>
+                                <option value="Intermedio">Intermedio</option>
+                                <option value="Avanzado">Avanzado</option>
+                                <option value="Pro">Pro</option>
+                            </select>
+                        </div>
+                        <button id="add-btn" class="w-full bg-primary text-black font-black py-5 rounded-2xl shadow-xl shadow-primary/10 uppercase tracking-[0.2em] text-xs mt-4 active:scale-95 hover:shadow-primary/20 transition-all">
+                            Registrar Atleta
+                        </button>
+                    </div>
                 </div>
-                <button id="add-btn" class="w-full bg-primary text-black font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-xs mt-2">
-                    Añadir Atleta
-                </button>
+            </div>
+
+            <!-- Right Column: Athletes List -->
+            <div class="lg:col-span-2 space-y-6 animate-in fade-in slide-in-from-right duration-700">
+                <div class="flex justify-between items-center ml-1">
+                    <h3 class="text-sm font-black uppercase tracking-[0.25em] text-primary/80">Base de Datos de Atletas</h3>
+                    <div id="athletes-count" class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">-- Atletas</div>
+                </div>
+                
+                <div id="athletes-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="col-span-full py-20 text-center text-slate-600 animate-pulse uppercase tracking-[0.3em] font-black text-[10px]">
+                        Consultando Sincronización...
+                    </div>
+                </div>
             </div>
         </div>
 
-        <h3 class="text-sm font-bold uppercase tracking-[0.2em] text-primary mb-4 ml-1">Lista de Atletas</h3>
-        <div id="athletes-list" class="space-y-3">
-            <!-- Loaded athletes -->
-        </div>
-
-        <div id="restricted-overlay" class="fixed inset-0 bg-black flex flex-col items-center justify-center p-10 text-center z-50">
-            <span class="material-symbols-outlined text-red-500 text-6xl mb-4">lock</span>
-            <h2 class="text-2xl font-black mb-2">Acceso Restringido</h2>
-            <p class="text-slate-400 text-sm mb-8">Solo los administradores pueden gestionar la base de datos de atletas.</p>
-            <a href="login.html" class="bg-white/10 px-8 py-3 rounded-full font-bold">Volver al Login</a>
+        <div id="restricted-overlay" class="fixed inset-0 bg-background-dark/95 backdrop-blur-xl flex flex-col items-center justify-center p-10 text-center z-50 animate-in fade-in duration-500 hidden">
+            <div class="size-24 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 shadow-2xl shadow-red-500/5">
+                <span class="material-symbols-outlined text-red-500 text-5xl">lock</span>
+            </div>
+            <h2 class="text-3xl font-black mb-3 tracking-tighter italic">Acceso Restringido</h2>
+            <p class="text-slate-400 text-sm mb-10 max-w-sm mx-auto leading-relaxed uppercase tracking-wider font-bold text-[10px]">Solo los administradores certificados pueden gestionar la base de datos de atletas del centro DCEP.</p>
+            <a href="login.html" class="bg-white text-black px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Regresar a Identificación</a>
         </div>
     </main>
 
@@ -83,17 +106,25 @@
 
         async function checkAdmin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return;
+            if (!session) {
+                window.location.href = "login.html";
+                return;
+            }
 
-            const { data: profile } = await supabaseClient
+            const { data: profile, error } = await supabaseClient
                 .from('profiles')
                 .select('is_admin')
                 .eq('id', session.user.id)
                 .single();
 
             if (profile && profile.is_admin) {
-                document.getElementById('restricted-overlay').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
+                fetchAthletes(); // Only fetch if admin
+            } else {
+                // Show restricted overlay and prevent loading lists
+                document.getElementById('restricted-overlay').classList.remove('hidden');
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('athletes-list').innerHTML = '';
             }
         }
 
@@ -104,12 +135,17 @@
                 list.innerHTML = data.map(a => `
                     <div class="bg-card-dark border border-white/5 rounded-xl p-4 flex justify-between items-center shadow-lg">
                         <div>
-                            <p class="font-bold text-white">${a.name}</p>
-                            <p class="text-[10px] uppercase font-bold text-primary/60 tracking-widest">${a.category}</p>
+                            <p class="font-bold text-white">${a.name} ${a.last_name || ''}</p>
+                            <p class="text-[10px] uppercase font-bold text-primary/60 tracking-widest">${a.category || ''}</p>
                         </div>
-                        <button class="size-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center" onclick="deleteAthlete('${a.id}')">
-                            <span class="material-symbols-outlined text-sm">delete</span>
-                        </button>
+                        <div class="flex gap-2">
+                            <a href="historial.html?id=${a.id}" class="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-black transition-colors" title="Ver Historial">
+                                <span class="material-symbols-outlined text-sm">history</span>
+                            </a>
+                            <button class="size-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors" onclick="deleteAthlete('${a.id}')" title="Eliminar Atleta">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
                     </div>
                 `).join('');
             }
@@ -136,7 +172,6 @@
         }
 
         checkAdmin();
-        fetchAthletes();
     </script>
 </body>
 </html>

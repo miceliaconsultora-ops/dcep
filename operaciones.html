@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Métricas & Actividad - DCEP</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bfff00",
+                        "background-dark": "#050505",
+                        "card-dark": "#121212",
+                        "accent-dark": "#1a1a1a"
+                    },
+                    fontFamily: {
+                        "display": ["Lexend"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #050505; }
+        .stat-card {
+            background: linear-gradient(145deg, #121212, #0a0a0a);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .custom-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23bfff00' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen font-display pb-24">
+
+    <!-- Header -->
+    <header class="p-4 flex items-center justify-between sticky top-0 z-30 bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+        <a href="dashboard.html" class="flex size-10 items-center justify-center text-primary/80 hover:bg-white/5 rounded-full transition-colors active:scale-95">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div class="flex flex-col items-center">
+            <h1 class="text-lg font-black tracking-tighter text-white uppercase">Actividad</h1>
+            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Métricas del Centro</p>
+        </div>
+        <div class="size-10"></div>
+    </header>
+
+    <main class="p-4 space-y-10 max-w-7xl mx-auto w-full pt-6">
+
+        <!-- Date Range Filter -->
+        <div class="stat-card rounded-3xl p-6 flex flex-col md:flex-row items-end gap-6 animate-in fade-in slide-in-from-top duration-700">
+            <div class="flex-1 w-full space-y-2">
+                <label class="text-[10px] uppercase font-black text-primary/60 tracking-[0.2em] ml-1">Rango de Consulta</label>
+                <div class="flex gap-3">
+                    <input type="date" id="date-from" class="flex-1 bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm text-white outline-none focus:border-primary/50 shadow-inner transition-all">
+                    <input type="date" id="date-to" class="flex-1 bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm text-white outline-none focus:border-primary/50 shadow-inner transition-all">
+                </div>
+            </div>
+            <button id="filter-btn" class="w-full md:w-48 bg-primary text-black font-black py-3.5 rounded-xl uppercase tracking-widest text-xs active:scale-95 transition-all shadow-lg shadow-primary/20">
+                Actualizar Datos
+            </button>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="stat-card rounded-2xl p-6 flex flex-col gap-3 group hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl opacity-80 group-hover:scale-110 transition-transform">calendar_month</span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">Turnos</span>
+                </div>
+                <p id="metric-total-shifts" class="text-4xl font-black italic text-white">--</p>
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Programados</p>
+            </div>
+            <div class="stat-card rounded-2xl p-6 flex flex-col gap-3 group hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl opacity-80 group-hover:scale-110 transition-transform">groups</span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">Jugadores</span>
+                </div>
+                <p id="metric-total-bookings" class="text-4xl font-black italic text-white">--</p>
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Asistencias</p>
+            </div>
+            <div class="stat-card rounded-2xl p-6 flex flex-col gap-3 group hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl opacity-80 group-hover:scale-110 transition-transform">avg_pace</span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">Promedio</span>
+                </div>
+                <p id="metric-avg-players" class="text-4xl font-black italic text-primary">--</p>
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Por Turno</p>
+            </div>
+            <div class="stat-card rounded-2xl p-6 flex flex-col gap-3 group hover:border-primary/30 transition-all">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl opacity-80 group-hover:scale-110 transition-transform">percent</span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">Ocupación</span>
+                </div>
+                <p id="metric-occupancy" class="text-4xl font-black italic text-primary">--</p>
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Eficiencia</p>
+            </div>
+            <div class="stat-card rounded-2xl p-6 flex flex-col gap-3 group hover:border-primary/30 transition-all col-span-2 md:col-span-1">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl opacity-80 group-hover:scale-110 transition-transform">assignment</span>
+                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">Evals</span>
+                </div>
+                <p id="metric-total-evals" class="text-4xl font-black italic text-white">--</p>
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Realizadas</p>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-1">Turnos por Día</h2>
+                <div class="stat-card rounded-[2rem] p-6 relative min-h-[280px]">
+                    <canvas id="shiftsBarChart" class="w-full"></canvas>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-1">Jugadores por Turno</h2>
+                <div class="stat-card rounded-[2rem] p-6 relative min-h-[280px]">
+                    <canvas id="playersLineChart" class="w-full"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+            <!-- Court Usage -->
+            <div class="space-y-4">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-1">Uso de Canchas</h2>
+                <div class="stat-card rounded-[2rem] p-8 relative min-h-[350px] flex justify-center items-center">
+                    <canvas id="courtDoughnut" class="w-full"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Shifts Detail -->
+            <div class="md:col-span-2 space-y-4">
+                <h2 class="text-xs font-black text-primary/80 uppercase tracking-widest ml-1">Última Actividad en Turnos</h2>
+                <div id="recent-shifts-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="text-center text-slate-500 text-xs italic py-4 col-span-full uppercase tracking-widest animate-pulse">Cargando datos maestros...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://nfmbklhhrrnrakndkcch.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbWJrbGhocnJucmFrbmRrY2NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1ODQ3NjUsImV4cCI6MjA4OTE2MDc2NX0.dHlnfYMJ4d9y8zdwSWC6bGqDCwwUy8F1QL8729BeTOQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        Chart.defaults.color = '#71717a';
+        Chart.defaults.font.family = "'Lexend', sans-serif";
+        Chart.defaults.scale.grid.color = 'rgba(255, 255, 255, 0.05)';
+
+        let shiftsBarChartInst = null;
+        let playersLineChartInst = null;
+        let courtDoughnutInst = null;
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = "login.html"; return; }
+
+            // Security: admin only
+            const { data: profile } = await supabaseClient
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', session.user.id)
+                .single();
+
+            if (!profile || !profile.is_admin) {
+                window.location.href = "perfil.html";
+                return;
+            }
+
+            // Set default date range: last 30 days
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+
+            document.getElementById('date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
+            document.getElementById('date-to').value = today.toISOString().split('T')[0];
+
+            await loadData();
+
+            document.getElementById('filter-btn').addEventListener('click', loadData);
+        }
+
+        async function loadData() {
+            const dateFrom = document.getElementById('date-from').value;
+            const dateTo = document.getElementById('date-to').value;
+
+            if (!dateFrom || !dateTo) return;
+
+            // Build date range for queries
+            const fromISO = new Date(dateFrom + 'T00:00:00').toISOString();
+            const toISO = new Date(dateTo + 'T23:59:59').toISOString();
+
+            // Fetch shifts in date range
+            const { data: shifts, error: shiftErr } = await supabaseClient
+                .from('shifts')
+                .select('*')
+                .gte('shift_date', fromISO)
+                .lte('shift_date', toISO)
+                .order('shift_date', { ascending: true });
+
+            if (shiftErr) { console.error("Shift query error", shiftErr); }
+
+            // Fetch bookings for those shifts
+            const shiftIds = (shifts || []).map(s => s.id);
+            let bookings = [];
+            if (shiftIds.length > 0) {
+                const { data: bk } = await supabaseClient
+                    .from('bookings')
+                    .select('*')
+                    .in('shift_id', shiftIds);
+                bookings = bk || [];
+            }
+
+            // Fetch evaluations in date range
+            const { data: evals } = await supabaseClient
+                .from('evaluations')
+                .select('id')
+                .gte('evaluation_date', fromISO)
+                .lte('evaluation_date', toISO);
+
+            const totalShifts = (shifts || []).length;
+            const totalBookings = bookings.length;
+            const avgPlayers = totalShifts > 0 ? (totalBookings / totalShifts).toFixed(1) : 0;
+
+            // Calculate occupancy: total bookings / (total shifts * max_players per shift)
+            let totalCapacity = 0;
+            (shifts || []).forEach(s => {
+                totalCapacity += (s.max_players || 4);
+            });
+            const occupancy = totalCapacity > 0 ? Math.round((totalBookings / totalCapacity) * 100) : 0;
+
+            // Update KPI cards
+            document.getElementById('metric-total-shifts').innerText = totalShifts;
+            document.getElementById('metric-total-bookings').innerText = totalBookings;
+            document.getElementById('metric-avg-players').innerText = avgPlayers;
+            document.getElementById('metric-occupancy').innerText = occupancy + '%';
+            document.getElementById('metric-total-evals').innerText = (evals || []).length;
+
+            // Build charts
+            buildShiftsBarChart(shifts || []);
+            buildPlayersLineChart(shifts || [], bookings);
+            buildCourtDoughnut(shifts || [], bookings);
+            buildRecentShiftsList(shifts || [], bookings);
+        }
+
+        function buildShiftsBarChart(shifts) {
+            // Group shifts by date
+            const grouped = {};
+            shifts.forEach(s => {
+                const dateKey = new Date(s.shift_date).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+                grouped[dateKey] = (grouped[dateKey] || 0) + 1;
+            });
+
+            const labels = Object.keys(grouped);
+            const data = Object.values(grouped);
+
+            const ctx = document.getElementById('shiftsBarChart').getContext('2d');
+            if (shiftsBarChartInst) shiftsBarChartInst.destroy();
+
+            shiftsBarChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Turnos',
+                        data,
+                        backgroundColor: 'rgba(191, 255, 0, 0.6)',
+                        borderColor: '#bfff00',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#52525b' } },
+                        x: { ticks: { color: '#52525b', font: { size: 9 } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function buildPlayersLineChart(shifts, bookings) {
+            // For each shift (sorted by date), count bookings
+            const bookingsByShift = {};
+            bookings.forEach(b => {
+                bookingsByShift[b.shift_id] = (bookingsByShift[b.shift_id] || 0) + 1;
+            });
+
+            const labels = shifts.map(s => {
+                const d = new Date(s.shift_date);
+                return `${d.getDate()}/${d.getMonth()+1}`;
+            });
+            const data = shifts.map(s => bookingsByShift[s.id] || 0);
+
+            const ctx = document.getElementById('playersLineChart').getContext('2d');
+            if (playersLineChartInst) playersLineChartInst.destroy();
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(191, 255, 0, 0.4)');
+            gradient.addColorStop(1, 'rgba(191, 255, 0, 0.0)');
+
+            playersLineChartInst = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Jugadores',
+                        data,
+                        borderColor: '#bfff00',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#050505',
+                        pointBorderColor: '#bfff00',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#52525b' } },
+                        x: { ticks: { color: '#52525b', font: { size: 9 } } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function buildCourtDoughnut(shifts, bookings) {
+            // Group bookings by court number
+            const shiftMap = {};
+            shifts.forEach(s => { shiftMap[s.id] = s; });
+
+            const courtCounts = {};
+            bookings.forEach(b => {
+                const shift = shiftMap[b.shift_id];
+                if (shift) {
+                    const court = 'Cancha ' + (shift.court_number || '?');
+                    courtCounts[court] = (courtCounts[court] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(courtCounts);
+            const data = Object.values(courtCounts);
+            const colors = ['#bfff00', '#3b82f6', '#a855f7', '#ef4444'];
+
+            const ctx = document.getElementById('courtDoughnut').getContext('2d');
+            if (courtDoughnutInst) courtDoughnutInst.destroy();
+
+            courtDoughnutInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: '#050505',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#a1a1aa', font: { size: 11 }, boxWidth: 10, padding: 16 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function buildRecentShiftsList(shifts, bookings) {
+            const container = document.getElementById('recent-shifts-list');
+
+            if (shifts.length === 0) {
+                container.innerHTML = '<p class="text-center text-slate-500 text-xs italic py-4">No hay turnos en este período.</p>';
+                return;
+            }
+
+            // Count bookings per shift
+            const bookingsByShift = {};
+            bookings.forEach(b => {
+                bookingsByShift[b.shift_id] = (bookingsByShift[b.shift_id] || 0) + 1;
+            });
+
+            // Show latest 10
+            const recent = [...shifts].reverse().slice(0, 10);
+
+            container.innerHTML = recent.map(s => {
+                const d = new Date(s.shift_date);
+                const dateStr = d.toLocaleDateString('es-AR', { weekday: 'short', day: '2-digit', month: 'short' });
+                const timeStr = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+                const count = bookingsByShift[s.id] || 0;
+                const max = s.max_players || 4;
+                const pct = Math.round((count / max) * 100);
+                const isFull = count >= max;
+
+                return `
+                <div class="stat-card p-4 rounded-2xl flex items-center gap-3">
+                    <div class="size-10 rounded-xl ${isFull ? 'bg-primary/20 border-primary/30' : 'bg-white/5 border-white/10'} border flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined ${isFull ? 'text-primary' : 'text-slate-500'} text-lg">sports_tennis</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-bold text-white capitalize truncate">${dateStr}</p>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0 ml-2">${timeStr}</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-1">
+                            <p class="text-[10px] text-slate-500 font-bold">Cancha ${s.court_number || '?'}</p>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full ${isFull ? 'bg-primary' : 'bg-primary/50'} rounded-full transition-all" style="width:${pct}%"></div>
+                                </div>
+                                <span class="text-[10px] font-black ${isFull ? 'text-primary' : 'text-slate-400'}">${count}/${max}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

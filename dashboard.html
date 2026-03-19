@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"/>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -28,71 +28,76 @@
 </head>
 <body class="bg-background-dark text-slate-100 min-h-screen flex flex-col font-display">
 
-    <header class="p-6 pb-2">
+    <header class="p-6 pb-2 max-w-7xl mx-auto w-full">
         <div class="flex justify-between items-center mb-6">
-            <div>
+            <div class="animate-in fade-in slide-in-from-left duration-700">
                 <h1 class="text-3xl font-black text-primary tracking-tighter italic">DCEP</h1>
                 <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold">Admin Panel</p>
             </div>
-            <button id="logout-btn" class="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
+            <button id="logout-btn" class="size-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all active:scale-90">
                 <span class="material-symbols-outlined text-sm">logout</span>
             </button>
         </div>
         
-        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-slate-500 text-[10px] uppercase font-bold tracking-[0.2em] mb-1">Bienvenido Coach</p>
-                <h2 class="text-2xl font-bold" id="user-email">Cargando...</h2>
+        <div class="bg-card-dark rounded-3xl p-8 border border-white/5 shadow-2xl relative overflow-hidden group transition-all hover:border-primary/20">
+            <div class="relative z-10 animate-in fade-in zoom-in duration-1000">
+                <p class="text-primary/60 text-[10px] uppercase font-bold tracking-[0.2rem] mb-2">Bienvenido Coach</p>
+                <h2 class="text-3xl font-black tracking-tight text-white group-hover:text-primary transition-colors" id="user-email">Cargando...</h2>
             </div>
-            <div class="absolute -right-4 -bottom-4 size-24 bg-primary/10 rounded-full blur-3xl"></div>
+            <!-- Dynamic Background Glow -->
+            <div class="absolute -right-4 -bottom-4 size-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700"></div>
+            <div class="absolute -left-10 -top-10 size-40 bg-blue-500/5 rounded-full blur-[80px] group-hover:bg-blue-500/10 transition-all duration-1000"></div>
         </div>
     </header>
 
-    <main class="flex-1 p-6 space-y-6">
-        <h3 class="text-sm font-bold uppercase tracking-[0.3em] text-primary/80 ml-1">Módulos de Gestión</h3>
+    <main class="flex-1 p-6 space-y-8 max-w-7xl mx-auto w-full">
+        <div class="flex items-center gap-3 ml-1 animate-in fade-in slide-in-from-bottom duration-700">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            <h3 class="text-sm font-bold uppercase tracking-[0.3em] text-primary/80">Módulos de Gestión</h3>
+        </div>
         
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <!-- Evaluacion -->
-            <a href="evaluacion.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
-                <div class="size-12 rounded-2xl bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(191,255,0,0.2)]">
-                    <span class="material-symbols-outlined text-black font-bold text-2xl">assignment</span>
+            <a href="evaluacion.html" class="group bg-card-dark border border-white/5 p-8 rounded-[2.5rem] flex flex-col gap-6 shadow-xl hover:-translate-y-2 hover:border-primary/30 hover:shadow-[0_20px_40px_rgba(191,255,0,0.1)] transition-all duration-500">
+                <div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
+                    <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">assignment</span>
                 </div>
                 <div>
-                    <p class="font-bold text-sm">Evaluación</p>
-                    <p class="text-[9px] text-slate-500 uppercase font-black">Golpe por Golpe</p>
+                    <p class="font-black text-lg tracking-tight text-white group-hover:text-primary transition-colors">Evaluación</p>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">Golpe por Golpe</p>
                 </div>
             </a>
 
             <!-- Atletas -->
-            <a href="atletas.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
-                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-2xl">groups</span>
+            <a href="atletas.html" class="group bg-card-dark border border-white/5 p-8 rounded-[2.5rem] flex flex-col gap-6 shadow-xl hover:-translate-y-2 hover:border-primary/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500">
+                <div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
+                    <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">groups</span>
                 </div>
                 <div>
-                    <p class="font-bold text-sm">Atletas</p>
-                    <p class="text-[9px] text-slate-500 uppercase font-black">Carga y Edición</p>
+                    <p class="font-black text-lg tracking-tight text-white group-hover:text-primary transition-colors">Atletas</p>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">Carga y Edición</p>
                 </div>
             </a>
 
             <!-- Calendario -->
-            <a href="calendar.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
-                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-2xl">calendar_month</span>
+            <a href="calendar.html" class="group bg-card-dark border border-white/5 p-8 rounded-[2.5rem] flex flex-col gap-6 shadow-xl hover:-translate-y-2 hover:border-primary/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500">
+                <div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
+                    <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">calendar_month</span>
                 </div>
                 <div>
-                    <p class="font-bold text-sm">Turnos</p>
-                    <p class="text-[9px] text-slate-500 uppercase font-black">Agenda Atletas</p>
+                    <p class="font-black text-lg tracking-tight text-white group-hover:text-primary transition-colors">Turnos</p>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">Agenda Atletas</p>
                 </div>
             </a>
 
-            <!-- Evolución -->
-            <a href="historial.html" class="bg-card-dark border border-white/5 p-6 rounded-3xl flex flex-col gap-4 shadow-xl active:scale-95 transition-all">
-                <div class="size-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-2xl">insights</span>
+            <!-- Métricas & Actividad -->
+            <a href="operaciones.html" class="group bg-card-dark border border-white/5 p-8 rounded-[2.5rem] flex flex-col gap-6 shadow-xl hover:-translate-y-2 hover:border-primary/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-500">
+                <div class="size-14 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 border border-white/5 group-hover:border-primary/30 transition-all duration-500">
+                    <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">monitoring</span>
                 </div>
                 <div>
-                    <p class="font-bold text-sm">Evolución</p>
-                    <p class="text-[9px] text-slate-500 uppercase font-black">Estadísticas</p>
+                    <p class="font-black text-lg tracking-tight text-white group-hover:text-primary transition-colors">Actividad</p>
+                    <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">Métricas Centro</p>
                 </div>
             </a>
         </div>
@@ -111,18 +116,29 @@
             }
             
             // SECURITY CHECK: Ensure user is admin
-            const { data: profile } = await supabaseClient
+            const { data: profile, error: profileError } = await supabaseClient
                 .from('profiles')
                 .select('is_admin')
                 .eq('id', session.user.id)
                 .single();
                 
-            if (!profile || !profile.is_admin) {
+            if (profileError || !profile || !profile.is_admin) {
                 window.location.href = "perfil.html"; // Kick players out
                 return;
             }
 
-            document.getElementById('user-email').innerText = session.user.email;
+            // Fetch name from athletes table (where profile_id matches)
+            const { data: athlete } = await supabaseClient
+                .from('athletes')
+                .select('name, last_name')
+                .eq('profile_id', session.user.id)
+                .maybeSingle();
+
+            if (athlete) {
+                document.getElementById('user-email').innerText = `${athlete.name} ${athlete.last_name || ''}`;
+            } else {
+                document.getElementById('user-email').innerText = session.user.email.split('@')[0];
+            }
         }
 
         document.getElementById('logout-btn').onclick = async () => {

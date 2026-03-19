@@ -52,40 +52,58 @@
         <div class="size-10"></div>
     </header>
 
-    <main class="flex-1 px-4 pt-6 space-y-8 max-w-lg mx-auto w-full">
-        <!-- Athlete Selection -->
-        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl">
-            <label class="text-[10px] uppercase font-bold text-primary tracking-widest block mb-2 opacity-60">Atleta a Evaluar</label>
-            <select id="athlete-select" class="custom-select w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-base font-bold text-white outline-none focus:border-primary/50 appearance-none">
-                <option value="">Seleccionar Atleta...</option>
-            </select>
-        </div>
+    <main class="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
+        
+        <div class="flex flex-col lg:grid lg:grid-cols-3 gap-10 items-start">
+            
+            <!-- Left Column: Athlete Selection & Global Scores -->
+            <div class="space-y-8 lg:sticky lg:top-24 animate-in fade-in slide-in-from-left duration-700">
+                <div class="bg-card-dark rounded-[2rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute -right-10 -top-10 size-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700"></div>
+                    <div class="relative z-10 space-y-2">
+                        <label class="text-[10px] uppercase font-black text-primary tracking-[0.2em] block mb-2 opacity-60 ml-1">Atleta a Evaluar</label>
+                        <select id="athlete-select" class="custom-select w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-5 text-lg font-black text-white outline-none focus:border-primary/50 transition-all appearance-none shadow-inner">
+                            <option value="">Seleccionar Atleta...</option>
+                        </select>
+                    </div>
+                </div>
 
-        <!-- GLOBAL SCORES: Juego -->
-        <div class="space-y-4">
-            <h3 class="text-sm font-black text-primary/80 uppercase tracking-widest ml-1">Juego</h3>
-            <div class="grid grid-cols-1 gap-4" id="game-list">
-                <!-- Loaded via JS -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 ml-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        <h3 class="text-xs font-black text-primary/80 uppercase tracking-widest">Score Global (Juego)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4" id="game-list">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <!-- OBSERVATIONS -->
+                <div class="bg-card-dark rounded-[2rem] p-8 border border-white/5 shadow-2xl space-y-4">
+                    <label class="text-[10px] uppercase font-black text-primary tracking-[0.2em] block opacity-60 ml-1">Observaciones Finales</label>
+                    <textarea id="observations" rows="5" class="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-sm focus:border-primary/50 outline-none transition-all placeholder:text-slate-700 text-white italic shadow-inner" placeholder="Escribe aquí los puntos de mejora y feedback..."></textarea>
+                </div>
+
+                <button id="save-btn" class="w-full bg-primary text-black font-black py-6 rounded-2xl shadow-xl shadow-primary/10 uppercase tracking-[0.3em] text-xs active:scale-95 hover:shadow-primary/30 transition-all">
+                    Registrar Evaluación
+                </button>
+            </div>
+
+            <!-- Right Column: STROKE BREAKDOWN (Detailed) -->
+            <div class="lg:col-span-2 space-y-6 animate-in fade-in slide-in-from-right duration-700">
+                <div class="flex items-center justify-between ml-2">
+                    <div class="flex items-center gap-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                        <h3 class="text-sm font-black text-primary/80 uppercase tracking-widest italic">Análisis Golpe por Golpe</h3>
+                    </div>
+                    <p class="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Escala: 1 (Bajo) - 5 (Pro)</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="strokes-list">
+                    <!-- Loaded via JS -->
+                </div>
             </div>
         </div>
-
-        <!-- STROKE BREAKDOWN -->
-        <div class="space-y-4">
-            <h3 class="text-sm font-black text-primary/80 uppercase tracking-widest ml-1">Golpe por Golpe</h3>
-            <div class="space-y-3" id="strokes-list">
-                <!-- Loaded via JS -->
-            </div>
-        </div>
-
-        <!-- OBSERVATIONS -->
-        <div class="bg-card-dark rounded-3xl p-6 border border-white/5 shadow-2xl">
-            <label class="text-[10px] uppercase font-bold text-primary tracking-widest block mb-3 opacity-60">Observaciones Finales</label>
-            <textarea id="observations" rows="4" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm focus:border-primary/50 outline-none transition-all placeholder:text-slate-700" placeholder="Escribe aquí los puntos de mejora..."></textarea>
-        </div>
-
-        <button id="save-btn" class="w-full bg-primary text-black font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-xs active:scale-95 transition-all">
-            Guardar Evaluación
-        </button>
     </main>
 
     <script>
