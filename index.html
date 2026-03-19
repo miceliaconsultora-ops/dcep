@@ -25,23 +25,54 @@
 </head>
 <body class="bg-background-dark text-slate-100 min-h-screen flex flex-col items-center justify-center p-6 text-center">
 
-    <div class="mb-12 animate-pulse">
-        <h1 class="text-7xl font-black text-primary tracking-tighter italic">DCEP</h1>
-        <div class="h-1 bg-primary w-24 mx-auto mt-2 rounded-full"></div>
+    <div class="max-w-7xl mx-auto w-full flex flex-col items-center justify-center py-12 px-6">
+        
+        <!-- Animated Hero Section -->
+        <div class="mb-16 text-center animate-in fade-in zoom-in duration-1000">
+            <h1 class="text-8xl md:text-9xl font-black text-primary tracking-tighter italic animate-pulse">DCEP</h1>
+            <div class="h-1.5 bg-gradient-to-r from-transparent via-primary to-transparent w-48 mx-auto mt-4 rounded-full shadow-[0_0_20px_rgba(191,255,0,0.5)]"></div>
+            <p class="text-[12px] md:text-[14px] uppercase tracking-[0.5em] font-black text-slate-500 mt-6 animate-in slide-in-from-bottom duration-700">Explosividad. Técnica. Control.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center max-w-4xl w-full">
+            
+            <!-- Left Info -->
+            <div class="text-center md:text-left space-y-6 animate-in fade-in slide-in-from-left duration-700">
+                <h2 class="text-4xl md:text-5xl font-black italic text-white tracking-tight leading-none">DIEGO CIPRIANO</h2>
+                <div class="flex items-center gap-3 justify-center md:justify-start">
+                    <span class="w-10 h-[1px] bg-primary/40"></span>
+                    <span class="text-xs uppercase font-bold text-primary tracking-widest italic opacity-80">High Performance Padel</span>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-md mx-auto md:mx-0">
+                    Únete a la plataforma exclusiva para atletas de alto rendimiento de DCEP. 
+                    Seguimiento técnico golpe por golpe, métricas de evolución y gestión de turnos inteligente.
+                </p>
+            </div>
+
+            <!-- Right CTA -->
+            <div class="space-y-6 w-full animate-in fade-in slide-in-from-right duration-700">
+                <div class="bg-card-dark p-8 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div class="absolute -right-10 -bottom-10 size-40 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700"></div>
+                    
+                    <div class="relative z-10 space-y-5">
+                        <a href="login.html" class="flex items-center justify-center w-full bg-primary text-black font-black py-6 rounded-2xl shadow-xl hover:shadow-primary/20 uppercase tracking-[0.2em] text-xs transition-all active:scale-95">
+                            Iniciar Sesión
+                        </a>
+                        <a href="registro.html" class="flex items-center justify-center w-full bg-white/5 border border-white/10 text-white font-black py-4 rounded-2xl uppercase tracking-[0.1em] text-[10px] transition-all hover:bg-white/10 active:scale-95">
+                            Nuevo Atleta (Registro)
+                        </a>
+                        <p class="text-[9px] text-slate-600 uppercase tracking-widest pt-4 text-center font-bold">
+                            Plataforma restringida para deportistas autorizados
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <h2 class="text-2xl font-bold mb-4">Diego Cipriano</h2>
-    <p class="text-slate-400 text-sm mb-12 max-w-xs">Sistemas de Gestión para Entrenamiento de Padel de Alto Rendimiento.</p>
-
-    <div class="space-y-4 w-full max-w-xs">
-        <a href="login.html" class="block w-full bg-primary text-black font-black py-5 rounded-2xl shadow-xl uppercase tracking-widest text-sm transition-transform active:scale-95">
-            Iniciar Sesión
-        </a>
-        <a href="registro.html" class="block w-full bg-white/5 border border-white/10 text-white font-bold py-5 rounded-2xl uppercase tracking-widest text-sm transition-transform active:scale-95">
-            Registrarse como Atleta
-        </a>
-        <p class="text-[10px] text-slate-600 uppercase tracking-widest pt-4 italic">Plataforma Exclusiva DCEP</p>
-    </div>
+    <!-- Footer decoration line -->
+    <div class="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
 
 </body>
 </html>
