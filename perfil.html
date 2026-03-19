@@ -356,8 +356,8 @@
             preview.style.opacity = '0.5';
 
             const fileExt = file.name.split('.').pop();
-            const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
-            const path = `avatars/${fileName}`;
+            const fileName = `avatar-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const path = `${currentUser.id}/${fileName}`;
 
             const { error: uploadError } = await supabaseClient.storage.from('avatars').upload(path, file, { upsert: true });
             
