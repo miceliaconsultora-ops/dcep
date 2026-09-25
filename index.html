@@ -22,14 +22,59 @@
     <style>
         body { font-family: 'Lexend', sans-serif; background-color: #050505; }
     </style>
+
+    <!-- INTRO "IMPACTO": decide antes del primer render si se muestra (una vez por sesión) -->
+    <script>
+        (function () {
+            var show = true;
+            try {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) show = false;
+                if (sessionStorage.getItem('dcep_intro_seen')) show = false;
+            } catch (e) { /* storage bloqueado: se muestra igual */ }
+            if (show) document.documentElement.classList.add('intro-on');
+        })();
+    </script>
+    <style>
+        #intro { display: none; }
+        .intro-on body { overflow: hidden; }
+        .intro-on #intro {
+            display: block; position: fixed; inset: 0; z-index: 100;
+            background: #050505;
+        }
+        #intro-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .intro-vignette {
+            position: absolute; inset: 0; pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.85) 100%);
+        }
+        .intro-grain {
+            position: absolute; inset: 0; pointer-events: none; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        #intro-skip {
+            position: absolute; right: 20px; bottom: 20px; opacity: 0;
+            font: 900 10px 'Lexend', sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
+            color: #64748b; background: none; border: 0; padding: 10px; cursor: pointer;
+            transition: color 0.2s;
+        }
+        #intro-skip:hover, #intro-skip:focus-visible { color: #bfff00; outline: none; }
+    </style>
+    <link rel="stylesheet" href="assets/cursor.css"/>
+    <script src="assets/cursor.js" defer></script>
 </head>
 <body class="bg-background-dark text-slate-100 min-h-screen flex flex-col items-center justify-center p-6 text-center">
+
+    <div id="intro">
+        <svg id="intro-svg" aria-hidden="true"></svg>
+        <div class="intro-vignette"></div>
+        <div class="intro-grain"></div>
+        <button id="intro-skip" type="button">Saltar</button>
+    </div>
 
     <div class="max-w-7xl mx-auto w-full flex flex-col items-center justify-center py-12 px-6">
         
         <!-- Animated Hero Section -->
         <div class="mb-16 text-center animate-in fade-in zoom-in duration-1000">
-            <h1 class="text-8xl md:text-9xl font-black text-primary tracking-tighter italic animate-pulse">DCEP</h1>
+            <h1 id="hero-title" class="text-8xl md:text-9xl font-black text-primary tracking-tighter italic animate-pulse">DCEP</h1>
             <div class="h-1.5 bg-gradient-to-r from-transparent via-primary to-transparent w-48 mx-auto mt-4 rounded-full shadow-[0_0_20px_rgba(191,255,0,0.5)]"></div>
             <p class="text-[12px] md:text-[14px] uppercase tracking-[0.5em] font-black text-slate-500 mt-6 animate-in slide-in-from-bottom duration-700">Explosividad. Técnica. Control.</p>
         </div>
@@ -73,6 +118,327 @@
 
     <!-- Footer decoration line -->
     <div class="fixed bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+
+    <!-- INTRO "IMPACTO" (spec: design-system/intro-impacto.md) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script>
+    (function () {
+        const root = document.documentElement;
+        if (!root.classList.contains('intro-on')) return;
+
+        const intro = document.getElementById('intro');
+        const title = document.getElementById('hero-title');
+        let finished = false;
+
+        function finish() {
+            if (finished) return;
+            finished = true;
+            intro.remove();
+            root.classList.remove('intro-on');
+        }
+
+        // Si GSAP no cargó, la landing se muestra directo
+        if (typeof gsap === 'undefined') { finish(); return; }
+        // Red de seguridad: nunca dejar la intro colgada
+        setTimeout(finish, 7000);
+
+        try { sessionStorage.setItem('dcep_intro_seen', '1'); } catch (e) { /* sin storage */ }
+
+        // --- Medidas (todo escala con el lado menor de la pantalla) ---
+        const W = window.innerWidth, H = window.innerHeight;
+        const S = Math.min(W, H);
+        const NEON = '#bfff00';
+        const r = Math.max(12, S * 0.04);            // radio de la pelota
+        const floorY = H * 0.65;                      // línea del piso
+        const impactX = W * 0.58, impactY = floorY - S * 0.3;
+        const L = S * 0.5, arm = S * 0.25;            // largo de paleta y "brazo" hasta el pivote
+        const R = arm + 0.72 * L;                     // pivote → centro de la cara
+        const shoulderX = impactX - R, shoulderY = impactY;
+        const cover = Math.hypot(W, H) / 2;
+
+        // --- Construcción del SVG ---
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.getElementById('intro-svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        function el(tag, attrs, parent) {
+            const n = document.createElementNS(NS, tag);
+            for (const k in attrs) n.setAttribute(k, attrs[k]);
+            (parent || svg).appendChild(n);
+            return n;
+        }
+
+        const defs = el('defs', {});
+        const glow = el('filter', { id: 'ig-glow', x: '-50%', y: '-50%', width: '200%', height: '200%' }, defs);
+        el('feGaussianBlur', { stdDeviation: S * 0.012, result: 'b' }, glow);
+        const merge = el('feMerge', {}, glow);
+        el('feMergeNode', { in: 'b' }, merge);
+        el('feMergeNode', { in: 'SourceGraphic' }, merge);
+
+        const ballGrad = el('radialGradient', { id: 'ig-ball', cx: '38%', cy: '35%', r: '70%' }, defs);
+        el('stop', { offset: '0%', 'stop-color': '#e4ff7a' }, ballGrad);
+        el('stop', { offset: '55%', 'stop-color': NEON }, ballGrad);
+        el('stop', { offset: '100%', 'stop-color': '#86b300' }, ballGrad);
+
+        const floorGrad = el('radialGradient', { id: 'ig-floor' }, defs);
+        el('stop', { offset: '0%', 'stop-color': NEON, 'stop-opacity': '0.9' }, floorGrad);
+        el('stop', { offset: '100%', 'stop-color': NEON, 'stop-opacity': '0' }, floorGrad);
+
+        const irisMask = el('mask', { id: 'ig-iris' }, defs);
+        el('rect', { width: W, height: H, fill: 'white' }, irisMask);
+        const irisHole = el('circle', { cx: W / 2, cy: H / 2, r: 0, fill: 'black' }, irisMask);
+
+        const ballClip = el('clipPath', { id: 'ig-ballclip' }, defs);
+        el('circle', { r: r }, ballClip);
+
+        // Escena (el camera shake mueve este grupo)
+        const stage = el('g', {});
+
+        // Piso
+        el('line', { x1: 0, y1: floorY, x2: W, y2: floorY, stroke: NEON, 'stroke-width': 1, opacity: 0.1 }, stage);
+
+        // Rebotes: brillo del piso + onda
+        const bounceFx = [0, 1, 2].map(() => ({
+            glow: el('ellipse', { cy: floorY, rx: S * 0.22, ry: S * 0.018, fill: 'url(#ig-floor)', opacity: 0 }, stage),
+            ring: el('ellipse', { cy: floorY, rx: r, ry: r * 0.25, fill: 'none', stroke: NEON, 'stroke-width': 1.5, opacity: 0 }, stage)
+        }));
+
+        // Sombra de la pelota
+        const shadow = el('ellipse', { cy: floorY + r * 0.15, rx: r * 1.3, ry: r * 0.3, fill: '#000', opacity: 0.6 }, stage);
+        const shadowGlow = el('ellipse', { cy: floorY, rx: r * 1.6, ry: r * 0.22, fill: 'url(#ig-floor)', opacity: 0 }, stage);
+
+        // Líneas de velocidad (pelota hacia cámara)
+        const speed = el('g', { opacity: 0 }, stage);
+        for (let i = 0; i < 28; i++) {
+            const a = (i / 28) * Math.PI * 2 + Math.random() * 0.15;
+            const d1 = S * (0.15 + Math.random() * 0.1), d2 = d1 + S * (0.15 + Math.random() * 0.25);
+            el('line', {
+                x1: Math.cos(a) * d1, y1: Math.sin(a) * d1, x2: Math.cos(a) * d2, y2: Math.sin(a) * d2,
+                stroke: NEON, 'stroke-width': Math.max(1, S * 0.003), 'stroke-linecap': 'round',
+                opacity: 0.3 + Math.random() * 0.5
+            }, speed);
+        }
+
+        // Paleta de pádel (dibujada apuntando hacia arriba, pivote en 0,0).
+        // u = distancia desde la punta del mango hacia la cabeza, en unidades de L.
+        // Proporciones de una paleta real: mango ~30 %, corazón ~13 %, cara en lágrima ~57 %.
+        const P = (x, u) => `${x * L} ${-(arm + u * L)}`;
+        const paddleShape = el('g', { id: 'ig-paddle-shape' }, defs);
+        const edge = S * 0.005;
+
+        // Textura de carbono (damero sutil)
+        const cs = L * 0.022;
+        const carbon = el('pattern', { id: 'ig-carbon', width: cs * 2, height: cs * 2, patternUnits: 'userSpaceOnUse' }, defs);
+        el('rect', { width: cs * 2, height: cs * 2, fill: '#141414' }, carbon);
+        el('rect', { width: cs, height: cs, fill: '#1d1d1d' }, carbon);
+        el('rect', { x: cs, y: cs, width: cs, height: cs, fill: '#1d1d1d' }, carbon);
+
+        // Cordón colgando de la tapa del mango
+        el('path', { d: `M ${P(-0.02, 0.0)} C ${P(-0.16, -0.06)} ${P(-0.2, -0.2)} ${P(-0.08, -0.22)} C ${P(0.02, -0.23)} ${P(0.03, -0.1)} ${P(0.02, 0.0)}`,
+            fill: 'none', stroke: '#3f3f46', 'stroke-width': L * 0.012, 'stroke-linecap': 'round' }, paddleShape);
+        // Mango con grip encintado y tapa
+        el('rect', { x: -0.042 * L, y: -(arm + 0.31 * L), width: 0.084 * L, height: 0.29 * L, rx: 0.02 * L, fill: '#0d0d0d', stroke: '#2a2a2a', 'stroke-width': edge * 0.6 }, paddleShape);
+        for (let i = 0; i < 9; i++) {
+            const u = 0.04 + i * 0.03;
+            el('line', { x1: -0.042 * L, y1: -(arm + u * L), x2: 0.042 * L, y2: -(arm + (u + 0.025) * L), stroke: '#262626', 'stroke-width': S * 0.003 }, paddleShape);
+        }
+        el('rect', { x: -0.05 * L, y: -(arm + 0.035 * L), width: 0.1 * L, height: 0.035 * L, rx: 0.01 * L, fill: NEON }, paddleShape);
+
+        // Corazón: dos brazos hacia el mango con hueco triangular invertido
+        el('path', {
+            d: `M ${P(0.16, 0.44)} L ${P(0.046, 0.3)} L ${P(-0.046, 0.3)} L ${P(-0.16, 0.44)} Z ` +
+               `M ${P(0.11, 0.425)} L ${P(0, 0.33)} L ${P(-0.11, 0.425)} Q ${P(0, 0.41)} ${P(0.11, 0.425)} Z`,
+            'fill-rule': 'evenodd', fill: '#161616', stroke: NEON, 'stroke-width': edge, 'stroke-linejoin': 'round'
+        }, paddleShape);
+
+        // Cara en forma de lágrima (ancha arriba, se angosta hacia el corazón)
+        const faceD = `M ${P(0, 1)} C ${P(0.18, 1)} ${P(0.285, 0.9)} ${P(0.285, 0.77)} ` +
+                      `C ${P(0.285, 0.62)} ${P(0.22, 0.51)} ${P(0.16, 0.44)} ` +
+                      `Q ${P(0, 0.41)} ${P(-0.16, 0.44)} ` +
+                      `C ${P(-0.22, 0.51)} ${P(-0.285, 0.62)} ${P(-0.285, 0.77)} ` +
+                      `C ${P(-0.285, 0.9)} ${P(-0.18, 1)} ${P(0, 1)} Z`;
+        el('path', { d: faceD, fill: 'url(#ig-carbon)', stroke: NEON, 'stroke-width': edge * 1.3, 'stroke-linejoin': 'round' }, paddleShape);
+
+        // Perforaciones: grilla densa dentro de la cara, con margen y sin agujeros abajo
+        const halfWidth = u => u >= 0.77
+            ? 0.285 * Math.sqrt(Math.max(0, 1 - Math.pow((u - 0.77) / 0.23, 2)))
+            : 0.16 + 0.125 * Math.sin(((u - 0.44) / 0.33) * Math.PI / 2);
+        const holeR = 0.021 * L, stepX = 0.066, stepU = 0.062;
+        for (let row = 0; row < 12; row++) {
+            const u = 0.52 + row * stepU;
+            if (u > 0.95) break;
+            const offset = row % 2 ? stepX / 2 : 0;
+            for (let col = -5; col <= 5; col++) {
+                const x = col * stepX + offset;
+                if (Math.abs(x) + 0.06 < halfWidth(u) && (u < 0.77 || u + Math.abs(x) * 0.4 < 0.94)) {
+                    el('circle', { cx: x * L, cy: -(arm + u * L), r: holeR, fill: '#050505', stroke: '#2e2e2e', 'stroke-width': S * 0.0015 }, paddleShape);
+                }
+            }
+        }
+
+        // Estela: copias fantasma detrás de la paleta
+        const ghosts = [0.22, 0.13, 0.07].map(o => el('use', { href: '#ig-paddle-shape', opacity: 0 }, stage));
+        ghosts.forEach((g, i) => g.dataset.o = [0.22, 0.13, 0.07][i]);
+        const paddle = el('use', { href: '#ig-paddle-shape', filter: 'url(#ig-glow)', opacity: 0 }, stage);
+
+        // Pelota: posición/escala > aplastamiento > giro
+        const ball = el('g', { filter: 'url(#ig-glow)' }, stage);
+        const ballSquash = el('g', {}, ball);
+        const ballSpin = el('g', {}, ballSquash);
+        el('circle', { r: r, fill: 'url(#ig-ball)' }, ballSpin);
+        const seams = el('g', { 'clip-path': 'url(#ig-ballclip)', fill: 'none', stroke: '#fff', 'stroke-width': r * 0.11, 'stroke-linecap': 'round', opacity: 0.9 }, ballSpin);
+        el('path', { d: `M ${-r * 0.55} ${-r * 1.05} Q ${r * 0.15} 0 ${-r * 0.55} ${r * 1.05}` }, seams);
+        el('path', { d: `M ${r * 0.55} ${-r * 1.05} Q ${-r * 0.15} 0 ${r * 0.55} ${r * 1.05}` }, seams);
+        const ballFlat = el('circle', { r: r, fill: NEON, opacity: 0 }, ballSpin);
+
+        // Impacto: onda + chispas + flash
+        const shock = el('circle', { cx: impactX, cy: impactY, r: r, fill: 'none', stroke: NEON, 'stroke-width': S * 0.012, opacity: 0 }, stage);
+        const sparks = [];
+        for (let i = 0; i < 22; i++) {
+            sparks.push(el('circle', { cx: impactX, cy: impactY, r: Math.max(1, S * (0.002 + Math.random() * 0.005)), fill: i % 4 ? NEON : '#fff', opacity: 0 }, stage));
+        }
+        const flash = el('rect', { width: W, height: H, fill: NEON, opacity: 0 });
+
+        // Iris final: pantalla neón con un hueco que se abre
+        const iris = el('rect', { width: W, height: H, fill: NEON, mask: 'url(#ig-iris)', opacity: 0 });
+
+        // --- Estado animado ---
+        const b = { x: Math.min(impactX + S * 0.35, W - r * 2.5), y: -r * 3, s: 1, sx: 1, sy: 1, oy: r, rot: 0 };
+        const p = { phi: -110 };
+        const phiHistory = [];
+
+        function renderBall() {
+            ball.setAttribute('transform', `translate(${b.x} ${b.y}) scale(${b.s})`);
+            ballSquash.setAttribute('transform', `translate(0 ${b.oy}) scale(${b.sx} ${b.sy}) translate(0 ${-b.oy})`);
+            ballSpin.setAttribute('transform', `rotate(${b.rot})`);
+            // Sombra: más chica y tenue cuanto más alta está la pelota
+            const f = 1 / (1 + Math.max(0, floorY - r - b.y) / (S * 0.25));
+            shadow.setAttribute('cx', b.x);
+            shadow.setAttribute('rx', r * 1.3 * f);
+            shadowGlow.setAttribute('cx', b.x);
+        }
+        function renderPaddle() {
+            paddle.setAttribute('transform', `translate(${shoulderX} ${shoulderY}) rotate(${p.phi})`);
+            phiHistory.unshift(p.phi);
+            if (phiHistory.length > 12) phiHistory.pop();
+            ghosts.forEach((g, i) => {
+                const phi = phiHistory[Math.min(phiHistory.length - 1, (i + 1) * 3)];
+                g.setAttribute('transform', `translate(${shoulderX} ${shoulderY}) rotate(${phi})`);
+            });
+        }
+        renderBall();
+        renderPaddle();
+
+        // --- Timeline ---
+        const tl = gsap.timeline({ onUpdate: renderBall, onComplete: finish });
+        const contact = floorY - r;
+        const h1 = floorY * 0.32, h2 = floorY * 0.13;
+        const c = [0.68, 1.12, 1.40];                 // momentos de cada rebote
+        const x0 = b.x;
+        const xAt = t => x0 + (impactX - x0) * (t - 0.3) / 1.9;
+
+        // Desplazamiento horizontal constante hasta el punto de impacto + giro
+        tl.to(b, { x: impactX, duration: 1.9, ease: 'none' }, 0.3);
+        tl.to(b, { rot: 540, duration: 1.9, ease: 'power1.out' }, 0.3);
+
+        // Caída y rebotes (cada uno más bajo y más rápido)
+        tl.to(b, { y: contact, duration: c[0] - 0.3, ease: 'power2.in' }, 0.3)
+          .to(b, { y: contact - h1, duration: (c[1] - c[0]) / 2, ease: 'power2.out' }, c[0])
+          .to(b, { y: contact, duration: (c[1] - c[0]) / 2, ease: 'power2.in' })
+          .to(b, { y: contact - h2, duration: (c[2] - c[1]) / 2, ease: 'power2.out' }, c[1])
+          .to(b, { y: contact, duration: (c[2] - c[1]) / 2, ease: 'power2.in' });
+
+        c.forEach((t, i) => {
+            // Squash & stretch contra el piso
+            tl.set(b, { oy: r }, t)
+              .to(b, { sx: 1.25, sy: 0.75, duration: 0.04, ease: 'power1.out' }, t)
+              .to(b, { sx: 0.9, sy: 1.12, duration: 0.08, ease: 'power1.out' }, t + 0.04)
+              .to(b, { sx: 1, sy: 1, duration: 0.12, ease: 'power1.out' }, t + 0.12);
+            // El piso se enciende y sale una onda
+            const fx = bounceFx[i], x = xAt(t);
+            fx.glow.setAttribute('cx', x);
+            fx.ring.setAttribute('cx', x);
+            tl.fromTo(fx.glow, { opacity: 0 }, { immediateRender: false, opacity: 1, duration: 0.05 }, t)
+              .to(fx.glow, { opacity: 0, duration: 0.35 }, t + 0.05)
+              .fromTo(fx.ring, { opacity: 0.8, attr: { rx: r, ry: r * 0.25 } },
+                      { immediateRender: false, opacity: 0, attr: { rx: r * 7, ry: r * 1.2 }, duration: 0.45, ease: 'power2.out' }, t);
+        });
+
+        // Cámara lenta: la pelota sube y "flota" hasta el punto de impacto
+        tl.to(b, { y: impactY, duration: 0.8, ease: 'power3.out' }, c[2]);
+
+        // Swing de la paleta con estela
+        tl.to(paddle, { opacity: 1, duration: 0.15 }, 1.4);
+        ghosts.forEach(g => tl.to(g, { opacity: +g.dataset.o, duration: 0.2 }, 1.5));
+        tl.to(p, { phi: 90, duration: 0.8, ease: 'power2.in', onUpdate: renderPaddle }, 1.4);
+
+        // IMPACTO
+        const T = 2.2;
+        tl.set(ball, { attr: { filter: '' } }, T)
+          .set(b, { oy: 0 }, T)
+          .to(b, { sx: 0.72, sy: 1.25, duration: 0.05 }, T)
+          .to(b, { sx: 1, sy: 1, duration: 0.12 }, T + 0.05)
+          .to(flash, { opacity: 0.35, duration: 0.03 }, T)
+          .to(flash, { opacity: 0, duration: 0.1 }, T + 0.06)
+          .fromTo(shock, { opacity: 1, attr: { r: r } },
+                  { immediateRender: false, opacity: 0, attr: { r: S * 0.6, 'stroke-width': 0 }, duration: 0.55, ease: 'power2.out' }, T)
+          .to([shadow, shadowGlow], { opacity: 0, duration: 0.2 }, T);
+        sparks.forEach(sp => {
+            const a = Math.random() * Math.PI * 2, d = S * (0.12 + Math.random() * 0.3);
+            tl.fromTo(sp, { opacity: 1, attr: { cx: impactX, cy: impactY } },
+                { immediateRender: false, opacity: 0, attr: { cx: impactX + Math.cos(a) * d, cy: impactY + Math.sin(a) * d },
+                  duration: 0.45 + Math.random() * 0.3, ease: 'power3.out' }, T);
+        });
+        // Camera shake
+        const shake = { k: 1 };
+        tl.fromTo(shake, { k: 1 }, { immediateRender: false,
+            k: 0, duration: 0.15, ease: 'none',
+            onUpdate: () => {
+                const m = shake.k * 6;
+                stage.setAttribute('transform', `translate(${(Math.random() * 2 - 1) * m} ${(Math.random() * 2 - 1) * m})`);
+            },
+            onComplete: () => stage.removeAttribute('transform')
+        }, T);
+
+        // Seguimiento de la paleta y salida
+        tl.to(p, { phi: 165, duration: 0.5, ease: 'power2.out', onUpdate: renderPaddle }, T)
+          .to([paddle, ...ghosts], { opacity: 0, duration: 0.25 }, T + 0.25);
+
+        // La pelota sale disparada hacia la cámara
+        speed.setAttribute('transform', `translate(${W / 2} ${H / 2})`);
+        tl.to(b, { x: W / 2, y: H / 2, duration: 0.7, ease: 'power2.in' }, T)
+          .to(b, { s: cover / r * 1.1, duration: 0.7, ease: 'power3.in' }, T)
+          .to(ballFlat, { opacity: 1, duration: 0.25 }, T + 0.45)
+          .fromTo(speed, { opacity: 0 }, { immediateRender: false, opacity: 0.7, duration: 0.15 }, T + 0.05)
+          .to(speed, { opacity: 0, duration: 0.2 }, T + 0.5);
+        const speedScale = { s: 0.4 };
+        tl.to(speedScale, {
+            s: 2.4, duration: 0.7, ease: 'power2.in',
+            onUpdate: () => speed.setAttribute('transform', `translate(${W / 2} ${H / 2}) scale(${speedScale.s})`)
+        }, T);
+
+        // Revelado: la pantalla neón se abre en círculo desde el centro
+        const R0 = 2.9;
+        tl.set(iris, { opacity: 1 }, R0)
+          .set([stage, '.intro-vignette', '.intro-grain'], { opacity: 0 }, R0)
+          .set(intro, { backgroundColor: 'transparent' }, R0)
+          .to(irisHole, { attr: { r: cover * 1.05 }, duration: 0.4, ease: 'power2.in' }, R0)
+          .to('#intro-skip', { opacity: 0, duration: 0.1 }, R0)
+          .fromTo(title, { scale: 1.15 }, { immediateRender: false, scale: 1, duration: 0.5, ease: 'back.out(3)' }, R0 + 0.05);
+
+        // Botón saltar visible desde 0,5 s
+        tl.to('#intro-skip', { opacity: 1, duration: 0.3 }, 0.5);
+
+        // --- Saltar: botón, tap/clic o Esc ---
+        function skip() {
+            if (finished) return;
+            tl.kill();
+            gsap.set(title, { clearProps: 'transform' });
+            gsap.to(intro, { opacity: 0, duration: 0.25, onComplete: finish });
+        }
+        intro.addEventListener('click', skip);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') skip(); });
+    })();
+    </script>
 
 </body>
 </html>

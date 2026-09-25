@@ -1,0 +1,58 @@
+/* Cursor DCEP: pelotita de pádel (el punto activo es el centro de la pelota).
+   Los selectores llevan "html" para ganarle al reset de Tailwind (CDN), que se inyecta después. */
+html * {
+    cursor: url("cursor-ball.svg") 16 16, auto;
+}
+
+/* Elementos clickeables: pelotita con anillo neón */
+html a, html button, html select, html label, html summary, html [role="button"], html [onclick],
+html .cursor-pointer,
+html input[type="checkbox"], html input[type="radio"], html input[type="submit"],
+html input[type="button"], html input[type="file"] {
+    cursor: url("cursor-ball-hover.svg") 16 16, pointer;
+}
+
+/* Campos de texto: cursor de escritura normal */
+html input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+html textarea, html [contenteditable="true"] {
+    cursor: text;
+}
+
+/* Deshabilitados */
+html :disabled, html [aria-disabled="true"], html .cursor-not-allowed {
+    cursor: not-allowed !important;
+}
+
+/* --- Cursor animado (assets/cursor.js): oculta el del sistema y dibuja la pelotita --- */
+html.custom-cursor * {
+    cursor: none;
+}
+/* Donde hace falta el cursor del sistema, se mantiene */
+html.custom-cursor input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="file"]),
+html.custom-cursor textarea, html.custom-cursor [contenteditable="true"] {
+    cursor: text;
+}
+
+.dcep-cursor {
+    position: fixed; top: 0; left: 0; z-index: 2147483647;
+    width: 32px; height: 32px; pointer-events: none;
+    opacity: 0; transition: opacity 0.15s;
+    will-change: transform;
+}
+.dcep-cursor-ball {
+    position: absolute; inset: 0; width: 32px; height: 32px;
+    transition: scale 0.15s;
+}
+.dcep-cursor-ring {
+    position: absolute; inset: 1px; border-radius: 50%;
+    border: 1.5px solid rgba(191, 255, 0, 0.7);
+    opacity: 0; transform: scale(0.6);
+    transition: opacity 0.15s, transform 0.15s;
+}
+.dcep-cursor.is-hover .dcep-cursor-ring { opacity: 1; transform: scale(1); }
+.dcep-cursor.is-hover .dcep-cursor-ball { scale: 0.9; }
+
+/* Intro: sin ningún cursor */
+html.intro-on, html.intro-on * {
+    cursor: none !important;
+}
