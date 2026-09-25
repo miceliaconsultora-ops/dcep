@@ -121,6 +121,28 @@
                     </div>
                 </div>
 
+                <div class="space-y-8">
+                <!-- TURNOS: créditos + próximos turnos -->
+                <div class="bg-card-dark rounded-[2rem] p-6 border border-white/5 shadow-2xl space-y-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Mis créditos</p>
+                            <p id="credit-amount" class="text-3xl font-black italic text-white leading-tight">--</p>
+                            <p id="credit-expiry" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1"></p>
+                        </div>
+                        <a href="calendar.html" class="shrink-0 bg-primary hover:bg-[#d4ff00] text-black font-black px-5 py-4 rounded-2xl uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center gap-2">
+                            <span class="material-symbols-outlined text-lg">calendar_month</span>
+                            Reservar turno
+                        </a>
+                    </div>
+                    <div class="pt-6 border-t border-white/5">
+                        <h4 class="text-xs font-black text-primary/80 uppercase tracking-widest mb-4">Mis próximos turnos</h4>
+                        <div id="upcoming-shifts" class="space-y-3">
+                            <p class="text-xs text-slate-600 italic">Cargando...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Right Column: PERFORMANCE & EVALS -->
                 <div id="evaluation-section" class="space-y-8 hidden">
                     <!-- CTA: Mi Progreso -->
@@ -168,6 +190,7 @@
 
                 <div id="no-evaluation-msg" class="text-center py-20 opacity-30 italic text-sm">
                     Esperando primera evaluación...
+                </div>
                 </div>
             </div>
         </div>
@@ -234,7 +257,64 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) { window.location.href = "login.html"; return; }
             currentUser = session.user;
+            loadCredits();
+            loadUpcomingShifts();
             await loadProfile();
+        }
+
+        async function loadCredits() {
+            const { data: credits } = await supabaseClient
+                .from('credit_balances')
+                .select('unlimited, available, next_expiry')
+                .eq('profile_id', currentUser.id)
+                .maybeSingle();
+
+            const amountEl = document.getElementById('credit-amount');
+            const expiryEl = document.getElementById('credit-expiry');
+            if (credits?.unlimited) {
+                amountEl.innerText = 'Cupo libre';
+            } else {
+                const available = credits?.available || 0;
+                amountEl.innerText = `${available} ${available === 1 ? 'turno' : 'turnos'}`;
+                amountEl.classList.toggle('text-red-500', available === 0);
+                expiryEl.innerText = credits?.next_expiry
+                    ? `Vence ${new Date(credits.next_expiry).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}`
+                    : 'Consultá con el coach para recargar';
+            }
+        }
+
+        async function loadUpcomingShifts() {
+            const { data: bookings } = await supabaseClient
+                .from('bookings')
+                .select('shift_start, shifts(start_time, end_time, court_number)')
+                .eq('profile_id', currentUser.id)
+                .gt('shift_start', new Date().toISOString())
+                .order('shift_start')
+                .limit(5);
+
+            const container = document.getElementById('upcoming-shifts');
+            if (!bookings || bookings.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-600 italic">No tenés turnos reservados.</p>`;
+                return;
+            }
+
+            container.innerHTML = bookings.filter(b => b.shifts).map(b => {
+                const start = new Date(b.shifts.start_time);
+                const end = new Date(b.shifts.end_time);
+                const time = { hour: '2-digit', minute: '2-digit' };
+                return `
+                    <a href="calendar.html" class="flex items-center gap-4 bg-black/30 border border-white/5 rounded-2xl p-4 hover:border-primary/30 transition-colors">
+                        <div class="size-12 shrink-0 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                            <span class="text-[8px] font-black text-primary uppercase">${start.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '')}</span>
+                            <span class="text-lg font-black text-white leading-none">${start.getDate()}</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-black italic text-white">${start.toLocaleTimeString('es-AR', time)} — ${end.toLocaleTimeString('es-AR', time)}</p>
+                            <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">${start.toLocaleDateString('es-AR', { month: 'long' })} · ${b.shifts.court_number === 2 ? '2 canchas' : '1 cancha'}</p>
+                        </div>
+                    </a>
+                `;
+            }).join('');
         }
 
         async function loadProfile() {

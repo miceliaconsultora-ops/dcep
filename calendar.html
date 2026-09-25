@@ -58,10 +58,35 @@
         </div>
     </header>
 
-    <main class="p-6 space-y-8">
-        <!-- Week Selector (Simple Horizontal) -->
-        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar" id="week-selector">
-            <!-- Days will be loaded here -->
+    <main class="p-6 space-y-8 max-w-3xl mx-auto w-full">
+        <!-- Credit Banner (solo atletas) -->
+        <div id="credit-banner" class="hidden bg-card-dark rounded-3xl p-5 border border-primary/20 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">confirmation_number</span>
+                </div>
+                <div>
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Mis créditos</p>
+                    <p id="credit-amount" class="text-2xl font-black italic text-white leading-tight">--</p>
+                </div>
+            </div>
+            <p id="credit-expiry" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest text-right"></p>
+        </div>
+
+        <!-- Week Navigation -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <button id="prev-week" class="size-10 rounded-full bg-card-dark border border-white/5 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/30 transition-all disabled:opacity-20 disabled:pointer-events-none">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <p id="week-label" class="text-xs font-black uppercase tracking-[0.2em] text-slate-400">--</p>
+                <button id="next-week" class="size-10 rounded-full bg-card-dark border border-white/5 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary/30 transition-all">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar" id="week-selector">
+                <!-- Days will be loaded here -->
+            </div>
         </div>
 
         <div id="shifts-container" class="space-y-4">
@@ -133,8 +158,22 @@
 
         let currentUser = null;
         let isAdmin = false;
-        let selectedDate = new Date();
-        selectedDate.setHours(0,0,0,0);
+        let cancelHours = 12;
+        let credits = { unlimited: false, available: 0, next_expiry: null };
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        let selectedDate = new Date(today);
+        const currentWeekStart = getWeekStart(today);
+        let weekStart = new Date(currentWeekStart);
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const offset = (d.getDay() + 6) % 7; // Lunes = 0
+            d.setDate(d.getDate() - offset);
+            d.setHours(0,0,0,0);
+            return d;
+        }
 
         async function init() {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -144,37 +183,70 @@
             const { data: profile } = await supabaseClient.from('profiles').select('is_admin').eq('id', currentUser.id).single();
             isAdmin = profile?.is_admin || false;
 
+            const { data: settings } = await supabaseClient.from('app_settings').select('cancel_hours').eq('id', 1).maybeSingle();
+            if (settings) cancelHours = settings.cancel_hours;
+
             if (isAdmin) {
                 document.getElementById('admin-controls-toggle').style.display = 'block';
                 document.getElementById('admin-controls-toggle').classList.remove('hidden');
-                fetchAllAthletes();
+                await fetchAllAthletes();
             } else {
                 // If athlete, change back link to profile
                 document.getElementById('back-link').href = 'perfil.html';
+                document.getElementById('credit-banner').classList.remove('hidden');
+                await loadCredits();
             }
 
             renderWeek();
             loadShifts();
         }
 
+        async function loadCredits() {
+            const { data } = await supabaseClient
+                .from('credit_balances')
+                .select('unlimited, available, next_expiry')
+                .eq('profile_id', currentUser.id)
+                .maybeSingle();
+            if (data) credits = data;
+
+            const amountEl = document.getElementById('credit-amount');
+            const expiryEl = document.getElementById('credit-expiry');
+            if (credits.unlimited) {
+                amountEl.innerText = 'Cupo libre';
+                expiryEl.innerText = '';
+            } else {
+                amountEl.innerText = `${credits.available} ${credits.available === 1 ? 'turno' : 'turnos'}`;
+                amountEl.classList.toggle('text-red-500', credits.available === 0);
+                expiryEl.innerText = credits.next_expiry
+                    ? `Vence ${new Date(credits.next_expiry).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}`
+                    : 'Consultá con el coach para recargar';
+            }
+        }
+
         function renderWeek() {
             const container = document.getElementById('week-selector');
             container.innerHTML = '';
-            
-            // Get last 2 days and next 5 days
-            const start = new Date();
-            start.setDate(start.getDate() - 1);
+
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            const fmt = { day: 'numeric', month: 'short' };
+            document.getElementById('week-label').innerText =
+                `${weekStart.toLocaleDateString('es-AR', fmt)} — ${weekEnd.toLocaleDateString('es-AR', fmt)}`;
+
+            // Los atletas no navegan a semanas pasadas
+            document.getElementById('prev-week').disabled = !isAdmin && weekStart <= currentWeekStart;
 
             for (let i = 0; i < 7; i++) {
-                const day = new Date(start);
-                day.setDate(start.getDate() + i);
-                day.setHours(0,0,0,0);
+                const day = new Date(weekStart);
+                day.setDate(weekStart.getDate() + i);
 
                 const isActive = day.getTime() === selectedDate.getTime();
-                const dayName = i === 1 ? 'HOY' : day.toLocaleDateString('es-ES', { weekday: 'short' }).toUpperCase();
-                
+                const isToday = day.getTime() === today.getTime();
+                const isPastDay = day < today;
+                const dayName = isToday ? 'HOY' : day.toLocaleDateString('es-AR', { weekday: 'short' }).replace('.', '').toUpperCase();
+
                 const dayEl = document.createElement('button');
-                dayEl.className = `date-chip flex flex-col items-center min-w-[60px] p-4 rounded-2xl transition-all ${isActive ? 'active' : 'bg-card-dark border border-white/5 opacity-40'}`;
+                dayEl.className = `date-chip flex flex-col items-center flex-1 min-w-[48px] py-4 rounded-2xl transition-all ${isActive ? 'active' : 'bg-card-dark border border-white/5 hover:border-primary/30'} ${isPastDay && !isActive ? 'opacity-30' : ''}`;
                 dayEl.onclick = () => {
                     selectedDate = day;
                     renderWeek();
@@ -188,9 +260,19 @@
             }
         }
 
+        function changeWeek(delta) {
+            weekStart.setDate(weekStart.getDate() + delta * 7);
+            // Al cambiar de semana se selecciona el lunes, o hoy si es la semana actual
+            selectedDate = weekStart.getTime() === currentWeekStart.getTime() ? new Date(today) : new Date(weekStart);
+            renderWeek();
+            loadShifts();
+        }
+        document.getElementById('prev-week').onclick = () => changeWeek(-1);
+        document.getElementById('next-week').onclick = () => changeWeek(1);
+
         async function loadShifts() {
             const container = document.getElementById('shifts-container');
-            
+
             const startOfDay = new Date(selectedDate);
             const endOfDay = new Date(selectedDate);
             endOfDay.setHours(23,59,59,999);
@@ -214,16 +296,40 @@
                 return;
             }
 
+            const now = Date.now();
+            const hasCredits = credits.unlimited || credits.available > 0;
+
             container.innerHTML = shifts.map(shift => {
                 const bookedCount = shift.bookings?.length || 0;
                 const isFull = bookedCount >= shift.max_players;
                 const userBooked = shift.bookings?.some(b => b.profile_id === currentUser.id);
-                
-                const startTime = new Date(shift.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                const endTime = new Date(shift.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const shiftStart = new Date(shift.start_time).getTime();
+                const isPast = shiftStart <= now;
+                const canCancel = shiftStart - now > cancelHours * 3600 * 1000;
+
+                const startTime = new Date(shift.start_time).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+                const endTime = new Date(shift.end_time).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+                // Estado del botón del atleta
+                let btn;
+                if (userBooked && isPast) {
+                    btn = { label: 'Asististe', cls: 'bg-primary/10 text-primary border border-primary/20', disabled: true };
+                } else if (userBooked && canCancel) {
+                    btn = { label: 'Bajarme', cls: 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20', disabled: false };
+                } else if (userBooked) {
+                    btn = { label: 'Anotado', cls: 'bg-primary/10 text-primary border border-primary/20', disabled: true, title: `Solo podés bajarte hasta ${cancelHours} h antes. Consultá con el coach.` };
+                } else if (isPast) {
+                    btn = { label: 'Finalizado', cls: 'bg-slate-800 text-slate-500', disabled: true };
+                } else if (isFull) {
+                    btn = { label: 'Completo', cls: 'bg-slate-800 text-slate-500', disabled: true };
+                } else if (!hasCredits) {
+                    btn = { label: 'Sin créditos', cls: 'bg-slate-800 text-slate-500', disabled: true, title: 'Consultá con el coach para recargar.' };
+                } else {
+                    btn = { label: 'Anotarme', cls: 'bg-primary text-black shadow-lg shadow-primary/20 hover:bg-[#d4ff00]', disabled: false };
+                }
 
                 return `
-                    <div class="bg-card-dark rounded-3xl p-6 border border-white/5 flex items-center justify-between shadow-xl relative overflow-hidden">
+                    <div class="bg-card-dark rounded-3xl p-6 border border-white/5 flex items-center justify-between shadow-xl relative overflow-hidden ${isPast ? 'opacity-50' : ''}">
                         ${userBooked ? '<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>' : ''}
                         <div class="flex flex-col gap-1">
                             <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">${shift.court_number === 2 ? '2 CANCHAS (1 & 2)' : '1 CANCHA'}</p>
@@ -234,6 +340,18 @@
                                     ${bookedCount} / ${shift.max_players} JUGADORES
                                 </span>
                             </div>
+                            ${isAdmin && bookedCount > 0 ? `
+                                <div class="flex flex-wrap gap-2 mt-3">
+                                    ${shift.bookings.map(b => `
+                                        <span class="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full pl-3 pr-1 py-1 text-[10px] font-bold text-slate-300">
+                                            ${athleteName(b.profile_id)}
+                                            <button onclick="removePlayer('${shift.id}', '${b.profile_id}')" class="size-5 rounded-full flex items-center justify-center text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-colors" title="Sacar del turno">
+                                                <span class="material-symbols-outlined text-sm">close</span>
+                                            </button>
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
 
                         ${isAdmin ? `
@@ -246,10 +364,11 @@
                                 </button>
                             </div>
                         ` : `
-                            <button onclick="handleBooking('${shift.id}', ${userBooked})" 
-                                class="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${userBooked ? 'bg-red-500/10 text-red-500 border border-red-500/20' : isFull ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-primary text-black shadow-lg shadow-primary/20'}"
-                                ${isFull && !userBooked ? 'disabled' : ''}>
-                                ${userBooked ? 'Bajarme' : isFull ? 'Completo' : 'Anotarme'}
+                            <button onclick="handleBooking('${shift.id}', ${userBooked})"
+                                class="px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${btn.cls} ${btn.disabled ? 'cursor-not-allowed' : ''}"
+                                ${btn.title ? `title="${btn.title}"` : ''}
+                                ${btn.disabled ? 'disabled' : ''}>
+                                ${btn.label}
                             </button>
                         `}
                     </div>
@@ -259,17 +378,26 @@
 
         window.handleBooking = async (shiftId, userBooked) => {
             if (userBooked) {
+                if (!confirm('¿Bajarte de este turno? Se te devuelve el crédito.')) return;
                 const { error } = await supabaseClient.from('bookings').delete().match({ shift_id: shiftId, profile_id: currentUser.id });
                 if (error) alert(error.message);
             } else {
                 const { error } = await supabaseClient.from('bookings').insert([{ shift_id: shiftId, profile_id: currentUser.id }]);
-                if (error) alert(error.message);
+                if (error) alert(error.code === '23505' ? 'Ya estás anotado en este turno.' : error.message);
             }
+            await loadCredits();
+            loadShifts();
+        };
+
+        window.removePlayer = async (shiftId, profileId) => {
+            if (!confirm(`¿Sacar a ${athleteName(profileId)} del turno? Si el turno no empezó, se le devuelve el crédito.`)) return;
+            const { error } = await supabaseClient.from('bookings').delete().match({ shift_id: shiftId, profile_id: profileId });
+            if (error) alert(error.message);
             loadShifts();
         };
 
         window.deleteShift = async (id) => {
-            if(!confirm('¿Borrar este turno?')) return;
+            if(!confirm('¿Borrar este turno? A los anotados se les devuelve el crédito.')) return;
             const { error } = await supabaseClient.from('shifts').delete().eq('id', id);
             if (error) alert(error.message);
             loadShifts();
@@ -307,6 +435,10 @@
         };
 
         let allAthletes = [];
+        function athleteName(profileId) {
+            const a = allAthletes.find(x => x.profile_id === profileId);
+            return a ? `${a.name} ${a.last_name || ''}`.trim() : 'Atleta';
+        }
         async function fetchAllAthletes() {
             const { data: athletes } = await supabaseClient.from('athletes').select('profile_id, name, last_name').order('name');
             allAthletes = athletes || [];
